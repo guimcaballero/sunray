@@ -62,8 +62,11 @@ fn get_image_string() -> String {
 }
 
 fn ray_color(ray: &Ray) -> Color {
-    if hit_sphere(Point::new(0.0, 0.0, -1.0), 0.5, ray) {
-        return Color::new(1.0, 0.0, 0.0);
+    let center = Point::new(0.0, 0.0, -1.0);
+    let t = hit_sphere(center, 0.5, ray);
+    if t > 0.0 {
+        let normal = (ray.at(t) - center).normalize();
+        return 0.5 * Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0);
     }
 
     let unit = ray.direction.normalize();
@@ -71,7 +74,7 @@ fn ray_color(ray: &Ray) -> Color {
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.3, 0.3, 1.0)
 }
 
-fn hit_sphere(center: Point, radius: f32, ray: &Ray) -> bool {
+fn hit_sphere(center: Point, radius: f32, ray: &Ray) -> f32 {
     let oc = ray.origin - center;
     let a = ray.direction.length_squared();
     let b = 2.0 * oc.dot(&ray.direction);
@@ -79,5 +82,9 @@ fn hit_sphere(center: Point, radius: f32, ray: &Ray) -> bool {
 
     let discriminant = b * b - 4.0 * a * c;
 
-    discriminant > 0.0
+    if discriminant < 0.0 {
+        return -1.0;
+    } else {
+        return (-b - discriminant.sqrt()) / (2.0 * a);
+    }
 }
