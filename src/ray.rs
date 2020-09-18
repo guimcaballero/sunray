@@ -1,5 +1,7 @@
 use crate::vec3::*;
+use std::fmt::Debug;
 
+#[derive(Debug)]
 pub struct Ray {
     pub origin: Point,
     pub direction: Vec3,

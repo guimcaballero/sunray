@@ -1,4 +1,6 @@
-#[derive(Copy, Clone)]
+use std::fmt::Debug;
+
+#[derive(Copy, Clone, Debug)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -35,6 +37,10 @@ impl Vec3 {
 
     pub fn normalize(&self) -> Self {
         *self / self.length()
+    }
+
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
     }
 }
 
@@ -160,6 +166,18 @@ impl Mul<f32> for Vec3 {
             x: self.x * scalar,
             y: self.y * scalar,
             z: self.z * scalar,
+        }
+    }
+}
+
+impl Mul<Vec3> for f32 {
+    type Output = Vec3;
+
+    fn mul(self, vec: Vec3) -> Vec3 {
+        Vec3 {
+            x: vec.x * self,
+            y: vec.y * self,
+            z: vec.z * self,
         }
     }
 }
