@@ -3,6 +3,9 @@ use std::io::prelude::*;
 use std::path::Path;
 
 mod vec3;
+use vec3::*;
+mod ray;
+use ray::*;
 
 fn main() {
     let path = Path::new("image.ppm");
@@ -31,15 +34,13 @@ fn get_image_string() -> String {
     for j in (0..image_height).rev() {
         println!("Remaining scanlines: {}", j);
         for i in 0..image_width {
-            let r = (i as f32) / (image_width - 1) as f32;
-            let g = (j as f32) / (image_width - 1) as f32;
-            let b = 0.25;
+            let color = Color {
+                x: (i as f32) / (image_width - 1) as f32,
+                y: (j as f32) / (image_width - 1) as f32,
+                z: 0.25,
+            };
 
-            let ir = (255.999 * r) as u8;
-            let ig = (255.999 * g) as u8;
-            let ib = (255.999 * b) as u8;
-
-            result.push_str(&format!("{} {} {}\n", ir, ig, ib));
+            color.write_color(&mut result);
         }
     }
 

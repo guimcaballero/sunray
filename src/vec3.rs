@@ -38,6 +38,16 @@ impl Vec3 {
     }
 }
 
+impl Color {
+    pub fn write_color(&self, string: &mut String) {
+        let ir = (255.999 * self.x) as u8;
+        let ig = (255.999 * self.y) as u8;
+        let ib = (255.999 * self.z) as u8;
+
+        string.push_str(&format!("{} {} {}\n", ir, ig, ib));
+    }
+}
+
 use std::ops::*;
 
 impl Neg for Vec3 {
