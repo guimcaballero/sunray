@@ -1,7 +1,6 @@
 use rand::*;
 use std::f64::consts::*;
 use std::fmt::Debug;
-
 #[derive(Copy, Clone, Debug)]
 pub struct Vec3 {
     pub x: f64,
@@ -43,6 +42,14 @@ impl Vec3 {
 
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
+    }
+
+    pub fn zeros() -> Self {
+        Self::new(0.0, 0.0, 0.0)
+    }
+
+    pub fn ones() -> Self {
+        Self::new(1.0, 1.0, 1.0)
     }
 
     pub fn random(rng: &mut rngs::ThreadRng) -> Self {
@@ -89,6 +96,10 @@ impl Vec3 {
         } else {
             return -in_unit_sphere;
         }
+    }
+
+    pub fn reflect(&self, other: &Vec3) -> Vec3 {
+        *self - 2.0 * self.dot(other) * *other
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::{ray::*, vec3::*};
+use crate::{material::*, ray::*, vec3::*};
 
 #[derive(Clone, Copy)]
 pub struct HitRecord {
@@ -6,6 +6,7 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub material: Material,
 }
 
 impl HitRecord {
@@ -22,10 +23,11 @@ impl HitRecord {
 impl Default for HitRecord {
     fn default() -> Self {
         Self {
-            point: Point::new(0.0, 0.0, 0.0),
-            normal: Vec3::new(0.0, 0.0, 0.0),
+            point: Point::zeros(),
+            normal: Vec3::zeros(),
             t: 0.0,
             front_face: false,
+            material: Material::Lambertian(Color::zeros()),
         }
     }
 }
@@ -37,6 +39,7 @@ pub trait Hittable {
 pub struct Sphere {
     pub center: Point,
     pub radius: f64,
+    pub material: Material,
 }
 
 impl Hittable for Sphere {
@@ -56,6 +59,7 @@ impl Hittable for Sphere {
                 hit_record.point = ray.at(temp);
                 let outward_normal = (hit_record.point - self.center) / self.radius;
                 hit_record.set_face_normal(&ray, &outward_normal);
+                hit_record.material = self.material;
 
                 return true;
             }
@@ -66,6 +70,7 @@ impl Hittable for Sphere {
                 hit_record.point = ray.at(temp);
                 let outward_normal = (hit_record.point - self.center) / self.radius;
                 hit_record.set_face_normal(&ray, &outward_normal);
+                hit_record.material = self.material;
 
                 return true;
             }

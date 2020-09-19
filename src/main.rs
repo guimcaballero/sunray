@@ -18,6 +18,8 @@ mod hittable_list;
 use hittable_list::*;
 mod camera;
 use camera::*;
+mod material;
+use material::*;
 
 fn main() {
     let start = Instant::now();
@@ -49,19 +51,33 @@ fn get_image_string() -> String {
     let samples_per_pixel = 100;
 
     // Camera
-    let camera = Camera::new();
+    let camera = Camera::new(aspect_ratio);
 
     // World
     let mut world = HittableList::new();
     let sphere = Sphere {
         center: Point::new(0.0, 0.0, -1.0),
         radius: 0.5,
+        material: Material::Lambertian(Color::new(0.7, 0.3, 0.3)),
+    };
+    let left_sphere = Sphere {
+        center: Point::new(-1.0, 0.0, -1.0),
+        radius: 0.5,
+        material: Material::Metal(Color::new(0.8, 0.8, 0.8)),
+    };
+    let right_sphere = Sphere {
+        center: Point::new(1.0, 0.0, -1.0),
+        radius: 0.5,
+        material: Material::Metal(Color::new(0.8, 0.6, 0.2)),
     };
     let big_sphere = Sphere {
         center: Point::new(0.0, -100.5, -1.0),
         radius: 100.0,
+        material: Material::Lambertian(Color::new(0.8, 0.8, 0.0)),
     };
     world.add(&sphere);
+    world.add(&left_sphere);
+    world.add(&right_sphere);
     world.add(&big_sphere);
 
     let mut rng = rand::thread_rng();
@@ -97,12 +113,16 @@ fn ray_color(ray: &Ray, world: &dyn Hittable, rng: &mut ThreadRng, depth: u8) ->
 
     let mut hit_record = HitRecord::default();
     if world.hit(&ray, 0.001, f64::INFINITY, &mut hit_record) {
-        let target = hit_record.point + Vec3::random_in_hemisphere(rng, &hit_record.normal);
-        let ray = Ray {
-            origin: hit_record.point,
-            direction: target - hit_record.point,
-        };
-        return 0.5 * ray_color(&ray, world, rng, depth - 1);
+        let mut scattered = Ray::default();
+        let mut attenuation = Color::new(0.0, 0.0, 0.0);
+        if hit_record
+            .material
+            .scatter(&ray, &hit_record, &mut attenuation, &mut scattered, rng)
+        {
+            return attenuation * ray_color(&scattered, world, rng, depth - 1);
+        }
+
+        return Color::new(0.0, 0.0, 0.0);
     }
 
     let unit = ray.direction.normalize();

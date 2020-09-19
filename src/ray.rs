@@ -12,3 +12,12 @@ impl Ray {
         self.origin + self.direction * t
     }
 }
+
+impl Default for Ray {
+    fn default() -> Self {
+        Self {
+            origin: Point::new(0.0, 0.0, 0.0),
+            direction: Vec3::new(0.0, 0.0, 0.0),
+        }
+    }
+}
