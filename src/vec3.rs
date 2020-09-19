@@ -45,10 +45,21 @@ impl Vec3 {
 }
 
 impl Color {
-    pub fn write_color(&self, string: &mut String) {
-        let ir = (255.999 * self.x) as u8;
-        let ig = (255.999 * self.y) as u8;
-        let ib = (255.999 * self.z) as u8;
+    pub fn write_color(&self, samples_per_pixel: u8, string: &mut String) {
+        let Color {
+            x: mut r,
+            y: mut g,
+            z: mut b,
+        } = self;
+
+        let scale = 1.0 / samples_per_pixel as f64;
+        r *= scale;
+        g *= scale;
+        b *= scale;
+
+        let ir = (255.999 * r.clamp(0.0, 0.999)) as u8;
+        let ig = (255.999 * g.clamp(0.0, 0.999)) as u8;
+        let ib = (255.999 * b.clamp(0.0, 0.999)) as u8;
 
         string.push_str(&format!("{} {} {}\n", ir, ig, ib));
     }
