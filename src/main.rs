@@ -6,6 +6,10 @@ mod vec3;
 use vec3::*;
 mod ray;
 use ray::*;
+mod hittable;
+use hittable::*;
+mod hittable_list;
+use hittable_list::*;
 
 fn main() {
     let path = Path::new("image.ppm");
@@ -26,10 +30,25 @@ fn main() {
 }
 
 fn get_image_string() -> String {
+    // Image
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
     let image_height = (image_width as f32 / aspect_ratio) as u8;
 
+    // World
+    let mut world = HittableList::new();
+    let sphere = Sphere {
+        center: Point::new(0.0, 0.0, -1.0),
+        radius: 0.5,
+    };
+    let big_sphere = Sphere {
+        center: Point::new(0.0, -100.5, -1.0),
+        radius: 100.0,
+    };
+    world.add(&sphere);
+    world.add(&big_sphere);
+
+    // Camera
     let viewport_height = 2.0;
     let viewport_width = aspect_ratio * viewport_height;
     let focal_length = 1.0;
@@ -52,7 +71,7 @@ fn get_image_string() -> String {
                 direction: lower_left_corner + u * horizontal + v * vertical - origin,
             };
 
-            let color = ray_color(&ray);
+            let color = ray_color(&ray, &world);
 
             color.write_color(&mut result);
         }
@@ -61,30 +80,13 @@ fn get_image_string() -> String {
     return result;
 }
 
-fn ray_color(ray: &Ray) -> Color {
-    let center = Point::new(0.0, 0.0, -1.0);
-    let t = hit_sphere(center, 0.5, ray);
-    if t > 0.0 {
-        let normal = (ray.at(t) - center).normalize();
-        return 0.5 * Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0);
+fn ray_color(ray: &Ray, world: &dyn Hittable) -> Color {
+    let mut hit_record = HitRecord::default();
+    if world.hit(&ray, 0.0, f32::INFINITY, &mut hit_record) {
+        return 0.5 * (hit_record.normal + Color::new(1.0, 1.0, 1.0));
     }
 
     let unit = ray.direction.normalize();
     let t = 0.5 * (unit.y + 1.0);
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.3, 0.3, 1.0)
-}
-
-fn hit_sphere(center: Point, radius: f32, ray: &Ray) -> f32 {
-    let oc = ray.origin - center;
-    let a = ray.direction.length_squared();
-    let b = 2.0 * oc.dot(&ray.direction);
-    let c = oc.length_squared() - radius * radius;
-
-    let discriminant = b * b - 4.0 * a * c;
-
-    if discriminant < 0.0 {
-        return -1.0;
-    } else {
-        return (-b - discriminant.sqrt()) / (2.0 * a);
-    }
 }
