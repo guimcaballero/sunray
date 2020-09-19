@@ -4,7 +4,7 @@ use rand::*;
 #[derive(Clone, Copy)]
 pub enum Material {
     Lambertian(Color),
-    Metal(Color),
+    Metal(Color, f64),
 }
 
 impl Material {
@@ -27,11 +27,11 @@ impl Material {
                 *attenuation = albedo.clone();
                 return true;
             }
-            Self::Metal(albedo) => {
+            Self::Metal(albedo, fuzz) => {
                 let reflected = ray_in.direction.normalize().reflect(&hit_record.normal);
                 let ray = Ray {
                     origin: hit_record.point,
-                    direction: reflected,
+                    direction: reflected + fuzz.min(1.0) * Vec3::random_in_unit_sphere(rng),
                 };
                 *scattered = ray;
                 *attenuation = albedo.clone();

@@ -47,8 +47,9 @@ fn get_image_string() -> String {
     // Image
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
-    let image_height = (image_width as f64 / aspect_ratio) as u8;
-    let samples_per_pixel = 100;
+    let image_height = (image_width as f64 / aspect_ratio) as u16;
+    let samples_per_pixel: u16 = 100;
+    let max_depth: u16 = 50;
 
     // Camera
     let camera = Camera::new(aspect_ratio);
@@ -63,12 +64,12 @@ fn get_image_string() -> String {
     let left_sphere = Sphere {
         center: Point::new(-1.0, 0.0, -1.0),
         radius: 0.5,
-        material: Material::Metal(Color::new(0.8, 0.8, 0.8)),
+        material: Material::Metal(Color::new(0.8, 0.8, 0.8), 0.3),
     };
     let right_sphere = Sphere {
         center: Point::new(1.0, 0.0, -1.0),
         radius: 0.5,
-        material: Material::Metal(Color::new(0.8, 0.6, 0.2)),
+        material: Material::Metal(Color::new(0.8, 0.6, 0.2), 1.0),
     };
     let big_sphere = Sphere {
         center: Point::new(0.0, -100.5, -1.0),
@@ -81,7 +82,6 @@ fn get_image_string() -> String {
     world.add(&big_sphere);
 
     let mut rng = rand::thread_rng();
-    let max_depth = 50;
 
     let mut result = format!("P3\n{} {}\n255\n", image_width, image_height);
 
@@ -105,7 +105,7 @@ fn get_image_string() -> String {
     return result;
 }
 
-fn ray_color(ray: &Ray, world: &dyn Hittable, rng: &mut ThreadRng, depth: u8) -> Color {
+fn ray_color(ray: &Ray, world: &dyn Hittable, rng: &mut ThreadRng, depth: u16) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
         return Color::new(0.0, 0.0, 0.0);

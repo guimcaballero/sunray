@@ -104,7 +104,7 @@ impl Vec3 {
 }
 
 impl Color {
-    pub fn write_color(&self, samples_per_pixel: u8, string: &mut String) {
+    pub fn write_color(&self, samples_per_pixel: u16, string: &mut String) {
         let Color {
             x: mut r,
             y: mut g,
@@ -116,9 +116,9 @@ impl Color {
         g = (scale * g).sqrt();
         b = (scale * b).sqrt();
 
-        let ir = (255.999 * r.clamp(0.0, 0.999)) as u8;
-        let ig = (255.999 * g.clamp(0.0, 0.999)) as u8;
-        let ib = (255.999 * b.clamp(0.0, 0.999)) as u8;
+        let ir = (255.999 * r.clamp(0.0, 0.999)) as u16;
+        let ig = (255.999 * g.clamp(0.0, 0.999)) as u16;
+        let ib = (255.999 * b.clamp(0.0, 0.999)) as u16;
 
         string.push_str(&format!("{} {} {}\n", ir, ig, ib));
     }
@@ -138,10 +138,10 @@ impl Neg for Vec3 {
     }
 }
 
-impl Index<u8> for Vec3 {
+impl Index<u16> for Vec3 {
     type Output = f64;
 
-    fn index(&self, index: u8) -> &Self::Output {
+    fn index(&self, index: u16) -> &Self::Output {
         match index {
             0 => &self.x,
             1 => &self.y,
@@ -151,8 +151,8 @@ impl Index<u8> for Vec3 {
     }
 }
 
-impl IndexMut<u8> for Vec3 {
-    fn index_mut(&mut self, index: u8) -> &mut Self::Output {
+impl IndexMut<u16> for Vec3 {
+    fn index_mut(&mut self, index: u16) -> &mut Self::Output {
         match index {
             0 => &mut self.x,
             1 => &mut self.y,
