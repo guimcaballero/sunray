@@ -4,7 +4,7 @@ use crate::{ray::*, vec3::*};
 pub struct HitRecord {
     pub point: Point,
     pub normal: Vec3,
-    pub t: f32,
+    pub t: f64,
     pub front_face: bool,
 }
 
@@ -31,16 +31,16 @@ impl Default for HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool;
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
 }
 
 pub struct Sphere {
     pub center: Point,
-    pub radius: f32,
+    pub radius: f64,
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
         let half_b = oc.dot(&ray.direction);

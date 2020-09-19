@@ -33,7 +33,7 @@ fn get_image_string() -> String {
     // Image
     let aspect_ratio = 16.0 / 9.0;
     let image_width = 400;
-    let image_height = (image_width as f32 / aspect_ratio) as u8;
+    let image_height = (image_width as f64 / aspect_ratio) as u8;
 
     // World
     let mut world = HittableList::new();
@@ -64,8 +64,8 @@ fn get_image_string() -> String {
     for j in (0..image_height).rev() {
         // println!("Remaining scanlines: {}", j);
         for i in 0..image_width {
-            let u = (i as f32) / (image_width - 1) as f32;
-            let v = (j as f32) / (image_height - 1) as f32;
+            let u = (i as f64) / (image_width - 1) as f64;
+            let v = (j as f64) / (image_height - 1) as f64;
             let ray = Ray {
                 origin,
                 direction: lower_left_corner + u * horizontal + v * vertical - origin,
@@ -82,7 +82,7 @@ fn get_image_string() -> String {
 
 fn ray_color(ray: &Ray, world: &dyn Hittable) -> Color {
     let mut hit_record = HitRecord::default();
-    if world.hit(&ray, 0.0, f32::INFINITY, &mut hit_record) {
+    if world.hit(&ray, 0.0, f64::INFINITY, &mut hit_record) {
         return 0.5 * (hit_record.normal + Color::new(1.0, 1.0, 1.0));
     }
 
