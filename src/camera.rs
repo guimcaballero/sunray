@@ -9,12 +9,7 @@ pub struct Camera {
 
 impl Camera {
     pub fn new() -> Self {
-        // Image
         let aspect_ratio = 16.0 / 9.0;
-        let image_width = 400;
-        let image_height = (image_width as f64 / aspect_ratio) as u8;
-
-        // Camera
         let viewport_height = 2.0;
         let viewport_width = aspect_ratio * viewport_height;
         let focal_length = 1.0;

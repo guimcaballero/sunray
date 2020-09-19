@@ -1,9 +1,12 @@
 #![feature(clamp)]
+#![feature(tau_constant)]
 
-use rand::Rng;
+use rand::{rngs::*, Rng};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+
+use std::time::Instant;
 
 mod vec3;
 use vec3::*;
@@ -17,6 +20,8 @@ mod camera;
 use camera::*;
 
 fn main() {
+    let start = Instant::now();
+
     let path = Path::new("image.ppm");
     let display = path.display();
 
@@ -32,6 +37,8 @@ fn main() {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
         Ok(_) => println!("successfully wrote to {}", display),
     }
+
+    println!("{:.2?} seconds to run.", start.elapsed());
 }
 
 fn get_image_string() -> String {
@@ -58,6 +65,7 @@ fn get_image_string() -> String {
     world.add(&big_sphere);
 
     let mut rng = rand::thread_rng();
+    let max_depth = 50;
 
     let mut result = format!("P3\n{} {}\n255\n", image_width, image_height);
 
@@ -66,12 +74,12 @@ fn get_image_string() -> String {
         for i in 0..image_width {
             let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-            for s in 0..samples_per_pixel {
+            for _s in 0..samples_per_pixel {
                 let u = (i as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
                 let v = (j as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
 
                 let ray = camera.ray(u, v);
-                pixel_color += ray_color(&ray, &world);
+                pixel_color += ray_color(&ray, &world, &mut rng, max_depth);
             }
 
             pixel_color.write_color(samples_per_pixel, &mut result);
@@ -81,10 +89,20 @@ fn get_image_string() -> String {
     return result;
 }
 
-fn ray_color(ray: &Ray, world: &dyn Hittable) -> Color {
+fn ray_color(ray: &Ray, world: &dyn Hittable, rng: &mut ThreadRng, depth: u8) -> Color {
+    // If we've exceeded the ray bounce limit, no more light is gathered.
+    if depth <= 0 {
+        return Color::new(0.0, 0.0, 0.0);
+    }
+
     let mut hit_record = HitRecord::default();
-    if world.hit(&ray, 0.0, f64::INFINITY, &mut hit_record) {
-        return 0.5 * (hit_record.normal + Color::new(1.0, 1.0, 1.0));
+    if world.hit(&ray, 0.001, f64::INFINITY, &mut hit_record) {
+        let target = hit_record.point + Vec3::random_in_hemisphere(rng, &hit_record.normal);
+        let ray = Ray {
+            origin: hit_record.point,
+            direction: target - hit_record.point,
+        };
+        return 0.5 * ray_color(&ray, world, rng, depth - 1);
     }
 
     let unit = ray.direction.normalize();

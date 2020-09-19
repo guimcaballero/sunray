@@ -1,3 +1,5 @@
+use rand::*;
+use std::f64::consts::*;
 use std::fmt::Debug;
 
 #[derive(Copy, Clone, Debug)]
@@ -42,6 +44,52 @@ impl Vec3 {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
+
+    pub fn random(rng: &mut rngs::ThreadRng) -> Self {
+        Self {
+            x: rng.gen::<f64>(),
+            y: rng.gen::<f64>(),
+            z: rng.gen::<f64>(),
+        }
+    }
+
+    pub fn random_range(rng: &mut rngs::ThreadRng, min: f64, max: f64) -> Self {
+        Self {
+            x: rng.gen_range(min, max),
+            y: rng.gen_range(min, max),
+            z: rng.gen_range(min, max),
+        }
+    }
+
+    pub fn random_in_unit_sphere(rng: &mut rngs::ThreadRng) -> Self {
+        loop {
+            let vec = Self::random_range(rng, -1.0, 1.0);
+
+            if vec.length() < 1.0 {
+                return vec;
+            }
+        }
+    }
+
+    pub fn random_unit_vector(rng: &mut rngs::ThreadRng) -> Self {
+        let a = rng.gen_range(0.0, TAU);
+        let z: f64 = rng.gen_range(-1.0, 1.0);
+        let r = (1.0 - z * z).sqrt();
+        Self {
+            x: r * a.cos(),
+            y: r * a.sin(),
+            z: z,
+        }
+    }
+
+    pub fn random_in_hemisphere(rng: &mut rngs::ThreadRng, normal: &Vec3) -> Self {
+        let in_unit_sphere = Self::random_in_unit_sphere(rng);
+        if in_unit_sphere.dot(normal) > 0.0 {
+            return in_unit_sphere;
+        } else {
+            return -in_unit_sphere;
+        }
+    }
 }
 
 impl Color {
@@ -53,9 +101,9 @@ impl Color {
         } = self;
 
         let scale = 1.0 / samples_per_pixel as f64;
-        r *= scale;
-        g *= scale;
-        b *= scale;
+        r = (scale * r).sqrt();
+        g = (scale * g).sqrt();
+        b = (scale * b).sqrt();
 
         let ir = (255.999 * r.clamp(0.0, 0.999)) as u8;
         let ig = (255.999 * g.clamp(0.0, 0.999)) as u8;
