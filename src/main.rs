@@ -45,41 +45,31 @@ fn main() {
 
 fn get_image_string() -> String {
     // Image
-    let aspect_ratio = 16.0 / 9.0;
-    let image_width = 400;
+    let aspect_ratio = 3.0 / 2.0;
+    let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 100;
+    let samples_per_pixel: u16 = 500;
     let max_depth: u16 = 50;
 
     // Camera
-    let camera = Camera::new(aspect_ratio);
+    let lookfrom = Point::new(13.0, 2.0, 3.0);
+    let lookat = Point::new(0.0, 0.0, 0.0);
+    let dist_to_focus = 10.0; //(lookfrom - lookat).length();
+    let vfov = 20.0;
+    let aperture = 0.1;
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        vfov,
+        aspect_ratio,
+        aperture,
+        dist_to_focus,
+    );
 
     // World
-    let mut world = HittableList::new();
-    let sphere = Sphere {
-        center: Point::new(0.0, 0.0, -1.0),
-        radius: 0.5,
-        material: Material::Lambertian(Color::new(0.7, 0.3, 0.3)),
-    };
-    let left_sphere = Sphere {
-        center: Point::new(-1.0, 0.0, -1.0),
-        radius: 0.5,
-        material: Material::Metal(Color::new(0.8, 0.8, 0.8), 0.3),
-    };
-    let right_sphere = Sphere {
-        center: Point::new(1.0, 0.0, -1.0),
-        radius: 0.5,
-        material: Material::Metal(Color::new(0.8, 0.6, 0.2), 1.0),
-    };
-    let big_sphere = Sphere {
-        center: Point::new(0.0, -100.5, -1.0),
-        radius: 100.0,
-        material: Material::Lambertian(Color::new(0.8, 0.8, 0.0)),
-    };
-    world.add(&sphere);
-    world.add(&left_sphere);
-    world.add(&right_sphere);
-    world.add(&big_sphere);
+    let world = generate_world();
 
     let mut rng = rand::thread_rng();
 
@@ -94,7 +84,7 @@ fn get_image_string() -> String {
                 let u = (i as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
                 let v = (j as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
 
-                let ray = camera.ray(u, v);
+                let ray = camera.ray(u, v, &mut rng);
                 pixel_color += ray_color(&ray, &world, &mut rng, max_depth);
             }
 
@@ -128,4 +118,33 @@ fn ray_color(ray: &Ray, world: &dyn Hittable, rng: &mut ThreadRng, depth: u16) -
     let unit = ray.direction.normalize();
     let t = 0.5 * (unit.y + 1.0);
     (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.3, 0.3, 1.0)
+}
+
+fn generate_world() -> HittableList {
+    let mut world = HittableList::new();
+
+    // Ground
+    world.add(Box::new(Sphere {
+        center: Point::new(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        material: Material::Lambertian(Color::new(0.5, 0.5, 0.5)),
+    }));
+
+    world.add(Box::new(Sphere {
+        center: Point::new(0.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Material::Dielectric(1.5),
+    }));
+    world.add(Box::new(Sphere {
+        center: Point::new(-4.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Material::Lambertian(Color::new(4.0, 2.0, 1.0)),
+    }));
+    world.add(Box::new(Sphere {
+        center: Point::new(4.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Material::Metal(Color::new(0.7, 0.6, 0.5), 0.0),
+    }));
+
+    world
 }

@@ -98,8 +98,29 @@ impl Vec3 {
         }
     }
 
+    pub fn random_in_unit_disk(rng: &mut rngs::ThreadRng) -> Self {
+        loop {
+            let vec = Self {
+                x: rng.gen_range(-1.0, 1.0),
+                y: rng.gen_range(-1.0, 1.0),
+                z: 0.0,
+            };
+
+            if vec.length_squared() < 1.0 {
+                return vec;
+            }
+        }
+    }
+
     pub fn reflect(&self, other: &Vec3) -> Vec3 {
         *self - 2.0 * self.dot(other) * *other
+    }
+
+    pub fn refract(&self, normal: &Vec3, eta_over_etai: f64) -> Self {
+        let cos_theta = self.dot(&-*normal);
+        let r_out_perp = eta_over_etai * (*self + cos_theta * *normal);
+        let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * *normal;
+        r_out_perp + r_out_parallel
     }
 }
 

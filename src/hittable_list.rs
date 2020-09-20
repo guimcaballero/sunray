@@ -1,17 +1,17 @@
 use crate::{hittable::*, ray::*};
 
-pub struct HittableList<'a> {
-    objects: Vec<&'a dyn Hittable>,
+pub struct HittableList {
+    objects: Vec<Box<dyn Hittable>>,
 }
 
-impl<'a> HittableList<'a> {
+impl<'a> HittableList {
     pub fn new() -> Self {
         Self {
             objects: Vec::new(),
         }
     }
 
-    pub fn add(&mut self, object: &'a dyn Hittable) {
+    pub fn add(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
     }
 
@@ -20,7 +20,7 @@ impl<'a> HittableList<'a> {
     }
 }
 
-impl<'a> Hittable for HittableList<'a> {
+impl<'a> Hittable for HittableList {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
         let mut temp_rec = HitRecord::default();
 
