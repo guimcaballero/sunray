@@ -52,25 +52,25 @@ impl Vec3 {
         Self::new(1.0, 1.0, 1.0)
     }
 
-    pub fn random(rng: &mut rngs::ThreadRng) -> Self {
+    pub fn random() -> Self {
         Self {
-            x: rng.gen::<f64>(),
-            y: rng.gen::<f64>(),
-            z: rng.gen::<f64>(),
+            x: rand::thread_rng().gen::<f64>(),
+            y: rand::thread_rng().gen::<f64>(),
+            z: rand::thread_rng().gen::<f64>(),
         }
     }
 
-    pub fn random_range(rng: &mut rngs::ThreadRng, min: f64, max: f64) -> Self {
+    pub fn random_range(min: f64, max: f64) -> Self {
         Self {
-            x: rng.gen_range(min, max),
-            y: rng.gen_range(min, max),
-            z: rng.gen_range(min, max),
+            x: rand::thread_rng().gen_range(min, max),
+            y: rand::thread_rng().gen_range(min, max),
+            z: rand::thread_rng().gen_range(min, max),
         }
     }
 
-    pub fn random_in_unit_sphere(rng: &mut rngs::ThreadRng) -> Self {
+    pub fn random_in_unit_sphere() -> Self {
         loop {
-            let vec = Self::random_range(rng, -1.0, 1.0);
+            let vec = Self::random_range(-1.0, 1.0);
 
             if vec.length() < 1.0 {
                 return vec;
@@ -78,9 +78,9 @@ impl Vec3 {
         }
     }
 
-    pub fn random_unit_vector(rng: &mut rngs::ThreadRng) -> Self {
-        let a = rng.gen_range(0.0, TAU);
-        let z: f64 = rng.gen_range(-1.0, 1.0);
+    pub fn random_unit_vector() -> Self {
+        let a = rand::thread_rng().gen_range(0.0, TAU);
+        let z: f64 = rand::thread_rng().gen_range(-1.0, 1.0);
         let r = (1.0 - z * z).sqrt();
         Self {
             x: r * a.cos(),
@@ -89,8 +89,8 @@ impl Vec3 {
         }
     }
 
-    pub fn random_in_hemisphere(rng: &mut rngs::ThreadRng, normal: &Vec3) -> Self {
-        let in_unit_sphere = Self::random_in_unit_sphere(rng);
+    pub fn random_in_hemisphere(normal: &Vec3) -> Self {
+        let in_unit_sphere = Self::random_in_unit_sphere();
         if in_unit_sphere.dot(normal) > 0.0 {
             return in_unit_sphere;
         } else {
@@ -98,11 +98,11 @@ impl Vec3 {
         }
     }
 
-    pub fn random_in_unit_disk(rng: &mut rngs::ThreadRng) -> Self {
+    pub fn random_in_unit_disk() -> Self {
         loop {
             let vec = Self {
-                x: rng.gen_range(-1.0, 1.0),
-                y: rng.gen_range(-1.0, 1.0),
+                x: rand::thread_rng().gen_range(-1.0, 1.0),
+                y: rand::thread_rng().gen_range(-1.0, 1.0),
                 z: 0.0,
             };
 
@@ -125,7 +125,7 @@ impl Vec3 {
 }
 
 impl Color {
-    pub fn write_color(&self, samples_per_pixel: u16, string: &mut String) {
+    pub fn write_color(&self, samples_per_pixel: u16) -> String {
         let Color {
             x: mut r,
             y: mut g,
@@ -141,7 +141,7 @@ impl Color {
         let ig = (255.999 * g.clamp(0.0, 0.999)) as u16;
         let ib = (255.999 * b.clamp(0.0, 0.999)) as u16;
 
-        string.push_str(&format!("{} {} {}\n", ir, ig, ib));
+        format!("{} {} {}\n", ir, ig, ib)
     }
 }
 

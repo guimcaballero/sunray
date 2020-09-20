@@ -48,10 +48,9 @@ impl Camera {
         }
     }
 
-    pub fn ray(&self, s: f64, t: f64, rng: &mut rngs::ThreadRng) -> Ray {
-        let rd = self.lens_radius * Vec3::random_in_unit_disk(rng);
+    pub fn ray(&self, s: f64, t: f64) -> Ray {
+        let rd = self.lens_radius * Vec3::random_in_unit_disk();
         let offset = self.u * rd.x + self.v * rd.y;
-
         Ray {
             origin: self.origin + offset,
             direction: self.lower_left_corner + s * self.horizontal + t * self.vertical

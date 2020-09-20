@@ -15,11 +15,10 @@ impl Material {
         hit_record: &HitRecord,
         attenuation: &mut Color,
         scattered: &mut Ray,
-        rng: &mut rngs::ThreadRng,
     ) -> bool {
         match self {
             Self::Lambertian(albedo) => {
-                let scatter_direction = hit_record.normal + Vec3::random_unit_vector(rng);
+                let scatter_direction = hit_record.normal + Vec3::random_unit_vector();
                 let ray = Ray {
                     origin: hit_record.point,
                     direction: scatter_direction,
@@ -32,7 +31,7 @@ impl Material {
                 let reflected = ray_in.direction.normalize().reflect(&hit_record.normal);
                 let ray = Ray {
                     origin: hit_record.point,
-                    direction: reflected + fuzz.min(1.0) * Vec3::random_in_unit_sphere(rng),
+                    direction: reflected + fuzz.min(1.0) * Vec3::random_in_unit_sphere(),
                 };
                 *scattered = ray;
                 *attenuation = albedo.clone();
@@ -58,7 +57,7 @@ impl Material {
                     return true;
                 }
                 let reflect_prob = schlick(cos_theta, eta_over_etai);
-                if rng.gen::<f64>() < reflect_prob {
+                if rand::thread_rng().gen::<f64>() < reflect_prob {
                     let reflected = unit.reflect(&hit_record.normal);
                     *scattered = Ray {
                         origin: hit_record.point,

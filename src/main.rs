@@ -2,10 +2,10 @@
 #![feature(tau_constant)]
 
 use rand::{rngs::*, Rng};
+use rayon::prelude::*;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-
 use std::time::Instant;
 
 mod vec3;
@@ -71,31 +71,38 @@ fn get_image_string() -> String {
     // World
     let world = generate_world();
 
-    let mut rng = rand::thread_rng();
+    let string = (0..image_height)
+        .into_par_iter()
+        .rev()
+        .map(|j| {
+            println!("Remaining scanlines: {}", j);
+            (0..image_width)
+                .into_par_iter()
+                .map(|i| {
+                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-    let mut result = format!("P3\n{} {}\n255\n", image_width, image_height);
+                    for _s in 0..samples_per_pixel {
+                        let u =
+                            (i as f64 + rand::thread_rng().gen::<f64>()) / (image_width - 1) as f64;
+                        let v = (j as f64 + rand::thread_rng().gen::<f64>())
+                            / (image_height - 1) as f64;
 
-    for j in (0..image_height).rev() {
-        println!("Remaining scanlines: {}", j);
-        for i in 0..image_width {
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        let ray = camera.ray(u, v);
+                        pixel_color += ray_color(&ray, &world, max_depth);
+                    }
 
-            for _s in 0..samples_per_pixel {
-                let u = (i as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
-                let v = (j as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
+                    pixel_color.write_color(samples_per_pixel)
+                })
+                .collect()
+        })
+        .map(|array: Vec<String>| array.join(""))
+        .collect::<Vec<String>>()
+        .join("");
 
-                let ray = camera.ray(u, v, &mut rng);
-                pixel_color += ray_color(&ray, &world, &mut rng, max_depth);
-            }
-
-            pixel_color.write_color(samples_per_pixel, &mut result);
-        }
-    }
-
-    return result;
+    format!("P3\n{} {}\n255\n{}", image_width, image_height, string)
 }
 
-fn ray_color(ray: &Ray, world: &dyn Hittable, rng: &mut ThreadRng, depth: u16) -> Color {
+fn ray_color(ray: &Ray, world: &dyn Hittable, depth: u16) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
         return Color::new(0.0, 0.0, 0.0);
@@ -107,9 +114,9 @@ fn ray_color(ray: &Ray, world: &dyn Hittable, rng: &mut ThreadRng, depth: u16) -
         let mut attenuation = Color::new(0.0, 0.0, 0.0);
         if hit_record
             .material
-            .scatter(&ray, &hit_record, &mut attenuation, &mut scattered, rng)
+            .scatter(&ray, &hit_record, &mut attenuation, &mut scattered)
         {
-            return attenuation * ray_color(&scattered, world, rng, depth - 1);
+            return attenuation * ray_color(&scattered, world, depth - 1);
         }
 
         return Color::new(0.0, 0.0, 0.0);
@@ -130,6 +137,7 @@ fn generate_world() -> HittableList {
         material: Material::Lambertian(Color::new(0.5, 0.5, 0.5)),
     }));
 
+    // Spheres
     world.add(Box::new(Sphere {
         center: Point::new(0.0, 1.0, 0.0),
         radius: 1.0,
@@ -138,12 +146,18 @@ fn generate_world() -> HittableList {
     world.add(Box::new(Sphere {
         center: Point::new(-4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Lambertian(Color::new(4.0, 2.0, 1.0)),
+        material: Material::Lambertian(Color::new(0.4, 0.2, 0.1)),
     }));
     world.add(Box::new(Sphere {
         center: Point::new(4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Metal(Color::new(0.7, 0.6, 0.5), 0.0),
+        material: Material::Metal(Color::new(0.8, 0.6, 0.2), 0.0),
+    }));
+
+    world.add(Box::new(Sphere {
+        center: Point::new(-4.0, 0.5, 2.0),
+        radius: 0.5,
+        material: Material::Lambertian(Color::new(2.0, 2.0, 1.0)),
     }));
 
     world
