@@ -14,6 +14,8 @@ mod ray;
 use ray::*;
 mod hittable;
 use hittable::*;
+mod hit_record;
+use hit_record::*;
 mod hittable_list;
 use hittable_list::*;
 mod camera;
@@ -48,7 +50,7 @@ fn get_image_string() -> String {
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 500;
+    let samples_per_pixel: u16 = 50;
     let max_depth: u16 = 50;
 
     // Camera
@@ -66,6 +68,8 @@ fn get_image_string() -> String {
         aspect_ratio,
         aperture,
         dist_to_focus,
+        0.0,
+        1.0,
     );
 
     // World
@@ -154,11 +158,53 @@ fn generate_world() -> HittableList {
         material: Material::Metal(Color::new(0.8, 0.6, 0.2), 0.0),
     }));
 
+    // Illuminated sphere
     world.add(Box::new(Sphere {
         center: Point::new(-4.0, 0.5, 2.0),
         radius: 0.5,
         material: Material::Lambertian(Color::new(2.0, 2.0, 1.0)),
     }));
+
+    for a in -5..5 {
+        for b in -5..5 {
+            let choose_mat = rand::thread_rng().gen::<f64>();
+            let center = Point {
+                x: a as f64 + 0.9 * rand::thread_rng().gen::<f64>(),
+                y: 0.2,
+                z: b as f64 + 0.9 * rand::thread_rng().gen::<f64>(),
+            };
+
+            if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    let albedo = Color::random() * Color::random();
+                    let center1 =
+                        center + Vec3::new(0.0, rand::thread_rng().gen_range(0.0, 0.3), 0.0);
+                    world.add(Box::new(MovingSphere {
+                        center0: center,
+                        center1,
+                        time0: 0.0,
+                        time1: 1.0,
+                        radius: 0.2,
+                        material: Material::Lambertian(albedo),
+                    }));
+                } else if choose_mat < 0.95 {
+                    let albedo = Color::random_range(0.5, 1.0);
+                    let fuzz = rand::thread_rng().gen_range(0.0, 0.5);
+                    world.add(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Material::Metal(albedo, fuzz),
+                    }));
+                } else {
+                    world.add(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Material::Dielectric(1.5),
+                    }));
+                }
+            }
+        }
+    }
 
     world
 }

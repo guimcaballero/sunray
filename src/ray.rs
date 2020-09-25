@@ -5,6 +5,7 @@ use std::fmt::Debug;
 pub struct Ray {
     pub origin: Point,
     pub direction: Vec3,
+    pub time: f64,
 }
 
 impl Ray {
@@ -18,6 +19,7 @@ impl Default for Ray {
         Self {
             origin: Point::new(0.0, 0.0, 0.0),
             direction: Vec3::new(0.0, 0.0, 0.0),
+            time: 0.0,
         }
     }
 }

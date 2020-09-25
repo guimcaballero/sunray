@@ -1,4 +1,4 @@
-use crate::{hittable::*, ray::*, vec3::*};
+use crate::{hit_record::*, hittable::*, ray::*, vec3::*};
 use rand::*;
 
 #[derive(Clone, Copy)]
@@ -22,6 +22,7 @@ impl Material {
                 let ray = Ray {
                     origin: hit_record.point,
                     direction: scatter_direction,
+                    time: ray_in.time,
                 };
                 *scattered = ray;
                 *attenuation = albedo.clone();
@@ -32,6 +33,7 @@ impl Material {
                 let ray = Ray {
                     origin: hit_record.point,
                     direction: reflected + fuzz.min(1.0) * Vec3::random_in_unit_sphere(),
+                    time: ray_in.time,
                 };
                 *scattered = ray;
                 *attenuation = albedo.clone();
@@ -53,6 +55,7 @@ impl Material {
                     *scattered = Ray {
                         origin: hit_record.point,
                         direction: reflected,
+                        time: ray_in.time,
                     };
                     return true;
                 }
@@ -62,6 +65,7 @@ impl Material {
                     *scattered = Ray {
                         origin: hit_record.point,
                         direction: reflected,
+                        time: ray_in.time,
                     };
                     return true;
                 }
@@ -70,6 +74,7 @@ impl Material {
                 *scattered = Ray {
                     origin: hit_record.point,
                     direction: refracted,
+                    time: ray_in.time,
                 };
 
                 return true;
