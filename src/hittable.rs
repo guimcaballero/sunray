@@ -1,4 +1,5 @@
 use crate::{aabb::*, hit_record::*, material::*, ray::*, vec3::*};
+use std::f64::consts::PI;
 
 pub trait Hittable: Sync + Send {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
@@ -28,7 +29,10 @@ impl Hittable for Sphere {
                 hit_record.point = ray.at(temp);
                 let outward_normal = (hit_record.point - self.center) / self.radius;
                 hit_record.set_face_normal(&ray, &outward_normal);
-                hit_record.material = self.material;
+                hit_record.material = self.material.clone();
+                let (u, v) = get_sphere_uv((hit_record.point - self.center) / self.radius);
+                hit_record.u = u;
+                hit_record.v = v;
 
                 return true;
             }
@@ -39,7 +43,10 @@ impl Hittable for Sphere {
                 hit_record.point = ray.at(temp);
                 let outward_normal = (hit_record.point - self.center) / self.radius;
                 hit_record.set_face_normal(&ray, &outward_normal);
-                hit_record.material = self.material;
+                hit_record.material = self.material.clone();
+                let (u, v) = get_sphere_uv((hit_record.point - self.center) / self.radius);
+                hit_record.u = u;
+                hit_record.v = v;
 
                 return true;
             }
@@ -55,6 +62,15 @@ impl Hittable for Sphere {
         };
         return true;
     }
+}
+
+fn get_sphere_uv(p: Vec3) -> (f64, f64) {
+    let phi = p.z.atan2(p.x);
+    let theta = p.y.asin();
+
+    let u = 1.0 - (phi + PI) / (2.0 * PI);
+    let v = (theta + PI / 2.0) / PI;
+    (u, v)
 }
 
 pub struct MovingSphere {
@@ -85,7 +101,7 @@ impl Hittable for MovingSphere {
                 hit_record.point = ray.at(temp);
                 let outward_normal = (hit_record.point - center) / self.radius;
                 hit_record.set_face_normal(&ray, &outward_normal);
-                hit_record.material = self.material;
+                hit_record.material = self.material.clone();
 
                 return true;
             }
@@ -96,7 +112,7 @@ impl Hittable for MovingSphere {
                 hit_record.point = ray.at(temp);
                 let outward_normal = (hit_record.point - center) / self.radius;
                 hit_record.set_face_normal(&ray, &outward_normal);
-                hit_record.material = self.material;
+                hit_record.material = self.material.clone();
 
                 return true;
             }

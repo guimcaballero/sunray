@@ -26,6 +26,8 @@ mod aabb;
 use aabb::*;
 mod bvh;
 use bvh::*;
+mod texture;
+use texture::*;
 
 fn main() {
     let start = Instant::now();
@@ -139,10 +141,14 @@ fn generate_world() -> HittableList {
     let mut world = HittableList::new();
 
     // Ground
+    let checker = texture::checker(
+        texture::solid_color(Color::new(0.2, 0.3, 0.1)),
+        texture::solid_color(Color::new(0.9, 0.9, 0.9)),
+    );
     world.add(Box::new(Sphere {
         center: Point::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
-        material: Material::Lambertian(Color::new(0.5, 0.5, 0.5)),
+        material: Material::Lambertian(checker),
     }));
 
     // Spheres
@@ -154,7 +160,7 @@ fn generate_world() -> HittableList {
     world.add(Box::new(Sphere {
         center: Point::new(-4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Lambertian(Color::new(0.4, 0.2, 0.1)),
+        material: Material::Lambertian(texture::solid_color(Color::new(0.4, 0.2, 0.1))),
     }));
     world.add(Box::new(Sphere {
         center: Point::new(4.0, 1.0, 0.0),
@@ -166,7 +172,7 @@ fn generate_world() -> HittableList {
     world.add(Box::new(Sphere {
         center: Point::new(-4.0, 0.5, 2.0),
         radius: 0.5,
-        material: Material::Lambertian(Color::new(2.0, 2.0, 1.0)),
+        material: Material::Lambertian(texture::solid_color(Color::new(2.0, 2.0, 1.0))),
     }));
 
     for a in -5..5 {
@@ -189,7 +195,7 @@ fn generate_world() -> HittableList {
                         time0: 0.0,
                         time1: 1.0,
                         radius: 0.2,
-                        material: Material::Lambertian(albedo),
+                        material: Material::Lambertian(texture::solid_color(albedo)),
                     }));
                 } else if choose_mat < 0.95 {
                     let albedo = Color::random_range(0.5, 1.0);

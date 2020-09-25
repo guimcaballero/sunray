@@ -1,9 +1,9 @@
-use crate::{hit_record::*, hittable::*, ray::*, vec3::*};
+use crate::{hit_record::*, hittable::*, ray::*, texture::*, vec3::*};
 use rand::*;
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub enum Material {
-    Lambertian(Color),
+    Lambertian(Texture),
     Metal(Color, f64),
     Dielectric(f64),
 }
@@ -25,7 +25,7 @@ impl Material {
                     time: ray_in.time,
                 };
                 *scattered = ray;
-                *attenuation = albedo.clone();
+                *attenuation = albedo(hit_record.u, hit_record.v, hit_record.point);
                 return true;
             }
             Self::Metal(albedo, fuzz) => {
