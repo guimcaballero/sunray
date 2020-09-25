@@ -2,6 +2,7 @@ use crate::{aabb::*, hit_record::*, material::*, ray::*, vec3::*};
 
 pub trait Hittable: Sync + Send {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
+    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool;
 }
 
 pub struct Sphere {
@@ -45,6 +46,14 @@ impl Hittable for Sphere {
         }
 
         return false;
+    }
+
+    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
+        *output_box = AABB {
+            min: self.center - Vec3::new(self.radius, self.radius, self.radius),
+            max: self.center + Vec3::new(self.radius, self.radius, self.radius),
+        };
+        return true;
     }
 }
 
@@ -94,6 +103,21 @@ impl Hittable for MovingSphere {
         }
 
         return false;
+    }
+
+    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
+        let box0 = AABB {
+            min: self.center(t0) - Vec3::new(self.radius, self.radius, self.radius),
+            max: self.center(t0) + Vec3::new(self.radius, self.radius, self.radius),
+        };
+        let box1 = AABB {
+            min: self.center(t1) - Vec3::new(self.radius, self.radius, self.radius),
+            max: self.center(t1) + Vec3::new(self.radius, self.radius, self.radius),
+        };
+
+        *output_box = box0.surrounding_box(box1);
+
+        return true;
     }
 }
 

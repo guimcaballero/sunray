@@ -22,6 +22,10 @@ mod camera;
 use camera::*;
 mod material;
 use material::*;
+mod aabb;
+use aabb::*;
+mod bvh;
+use bvh::*;
 
 fn main() {
     let start = Instant::now();
