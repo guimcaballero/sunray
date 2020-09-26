@@ -24,15 +24,31 @@ impl Perlin {
     }
 
     pub fn noise(&self, point: Point) -> f64 {
-        // let u = point.x - point.x.floor();
-        // let v = point.y - point.y.floor();
-        // let w = point.z - point.z.floor();
+        let ijk = Point {
+            x: point.x.floor(),
+            y: point.y.floor(),
+            z: point.z.floor(),
+        };
+        let uvw = point - ijk;
+        let uvw = uvw * uvw * (3.0 * Vec3::ones() - 2.0 * uvw);
 
-        let i = (4.0 * point.x) as usize & 255;
-        let j = (4.0 * point.y) as usize & 255;
-        let k = (4.0 * point.z) as usize & 255;
+        let mut corners = [[[0.0; 2]; 2]; 2];
 
-        self.rand_float[self.perm_x[i] ^ self.perm_y[j] ^ self.perm_z[k]]
+        for di in 0..2 {
+            for dj in 0..2 {
+                for dk in 0..2 {
+                    let x_index = ((ijk.x as i16 + di as i16) & 255) as usize;
+                    let y_index = ((ijk.y as i16 + dj as i16) & 255) as usize;
+                    let z_index = ((ijk.z as i16 + dk as i16) & 255) as usize;
+                    corners[di][dj][dk] = self.rand_float[(self.perm_x[x_index]
+                        ^ self.perm_y[y_index]
+                        ^ self.perm_z[z_index])
+                        as usize];
+                }
+            }
+        }
+
+        trilinear_interpolation(&corners, uvw)
     }
 }
 
@@ -44,4 +60,25 @@ fn perlin_generate_perm() -> Vec<usize> {
     }
 
     return vec;
+}
+
+type Corners = [[[f64; 2]; 2]; 2];
+fn trilinear_interpolation(corners: &Corners, uvw: Vec3) -> f64 {
+    let mut accum = 0.0;
+
+    let one_minus_uvw = Vec3::ones() - uvw;
+
+    for i in 0..2 {
+        for j in 0..2 {
+            for k in 0..2 {
+                let ijk = Vec3::new(i as f64, j as f64, k as f64);
+                let one_minus_ijk = Vec3::ones() - ijk;
+
+                accum += (ijk * uvw + one_minus_ijk * one_minus_uvw).multiply_components()
+                    * corners[i][j][k];
+            }
+        }
+    }
+
+    accum
 }

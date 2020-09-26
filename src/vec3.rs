@@ -40,6 +40,10 @@ impl Vec3 {
         *self / self.length()
     }
 
+    pub fn multiply_components(&self) -> f64 {
+        self.x * self.y * self.z
+    }
+
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
