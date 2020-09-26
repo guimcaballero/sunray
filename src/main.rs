@@ -8,6 +8,8 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::time::Instant;
 
+mod perlin;
+use perlin::*;
 mod vec3;
 use vec3::*;
 mod ray;
@@ -54,7 +56,7 @@ fn main() {
 fn get_image_string() -> String {
     // Image
     let aspect_ratio = 3.0 / 2.0;
-    let image_width = 1200;
+    let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as u16;
     let samples_per_pixel: u16 = 50;
     let max_depth: u16 = 50;
@@ -160,7 +162,7 @@ fn generate_world() -> HittableList {
     world.add(Box::new(Sphere {
         center: Point::new(-4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Lambertian(texture::solid_color(Color::new(0.4, 0.2, 0.1))),
+        material: Material::Lambertian(texture::noise(Perlin::new())),
     }));
     world.add(Box::new(Sphere {
         center: Point::new(4.0, 1.0, 0.0),

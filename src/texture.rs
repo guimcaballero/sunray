@@ -1,4 +1,4 @@
-use crate::vec3::*;
+use crate::{perlin::Perlin, vec3::*};
 use std::sync::Arc;
 
 pub type Texture = Arc<dyn Fn(f64, f64, Vec3) -> Vec3 + Send + Sync>;
@@ -17,4 +17,8 @@ pub fn checker(even: Texture, odd: Texture) -> Texture {
             even(u, v, p)
         }
     })
+}
+
+pub fn noise(perlin: Perlin) -> Texture {
+    Arc::new(move |_, _, p| Color::ones() * perlin.noise(p))
 }

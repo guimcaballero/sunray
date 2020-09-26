@@ -54,6 +54,7 @@ impl BVHNode {
         let object_span = end - start;
 
         let (left, right) = if object_span == 1 {
+            // TODO Here we don't have the same item twice, because we're removing it
             ((objects.remove(start)), objects.remove(start))
         } else if object_span == 2 {
             match comparator(&*objects[start], &*objects[start + 1]) {
