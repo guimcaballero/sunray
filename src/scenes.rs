@@ -1,8 +1,7 @@
-use crate::{
-    bvh::*, camera::*, hittable::*, hittable_list::*, material::*, perlin::*, texture, vec3::*,
-};
+use crate::{camera::*, hittable::*, hittable_list::*, material::*, perlin::*, texture, vec3::*};
 use rand::Rng;
 
+#[allow(dead_code)]
 pub enum Scene {
     ManySpheres,
     TwoPerlinSpheres,

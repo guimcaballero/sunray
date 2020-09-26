@@ -1,4 +1,4 @@
-use crate::{hit_record::*, hittable::*, ray::*, texture::*, vec3::*};
+use crate::{hit_record::*, ray::*, texture::*, vec3::*};
 use rand::*;
 
 #[derive(Clone)]

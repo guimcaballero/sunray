@@ -1,5 +1,4 @@
 use crate::{ray::*, vec3::*};
-use rand::*;
 
 #[derive(Copy, Clone)]
 pub struct AABB {

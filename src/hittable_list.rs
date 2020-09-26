@@ -15,6 +15,7 @@ impl<'a> HittableList {
         self.objects.push(object);
     }
 
+    #[allow(dead_code)]
     pub fn clear(&mut self) {
         self.objects.clear();
     }

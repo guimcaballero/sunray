@@ -1,7 +1,7 @@
 use crate::vec3::*;
 use rand::Rng;
 
-const point_count: usize = 256;
+const POINT_COUNT: usize = 256;
 pub struct Perlin {
     rand_float: Vec<f64>,
     perm_x: Vec<usize>,
@@ -11,7 +11,7 @@ pub struct Perlin {
 
 impl Perlin {
     pub fn new() -> Perlin {
-        let rand_float: Vec<f64> = (0..point_count)
+        let rand_float: Vec<f64> = (0..POINT_COUNT)
             .map(|_| rand::thread_rng().gen::<f64>())
             .collect();
 
@@ -53,9 +53,9 @@ impl Perlin {
 }
 
 fn perlin_generate_perm() -> Vec<usize> {
-    let mut vec: Vec<usize> = (0..point_count).collect();
+    let mut vec: Vec<usize> = (0..POINT_COUNT).collect();
 
-    for i in (1..point_count).rev() {
+    for i in (1..POINT_COUNT).rev() {
         vec.swap(i.into(), rand::thread_rng().gen_range(0, i).into());
     }
 

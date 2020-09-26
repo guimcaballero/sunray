@@ -55,6 +55,7 @@ impl Hittable for Sphere {
         return false;
     }
 
+    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
         *output_box = AABB {
             min: self.center - Vec3::new(self.radius, self.radius, self.radius),

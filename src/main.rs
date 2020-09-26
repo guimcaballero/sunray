@@ -1,5 +1,4 @@
 #![feature(clamp)]
-#![feature(tau_constant)]
 
 use rand::Rng;
 use rayon::prelude::*;
@@ -17,11 +16,10 @@ mod hittable;
 use hittable::*;
 mod hit_record;
 use hit_record::*;
-mod camera;
-mod hittable_list;
-use camera::*;
 mod aabb;
 mod bvh;
+mod camera;
+mod hittable_list;
 mod material;
 mod scenes;
 mod texture;
