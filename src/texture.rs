@@ -19,6 +19,22 @@ pub fn checker(even: Texture, odd: Texture) -> Texture {
     })
 }
 
-pub fn noise(perlin: Perlin) -> Texture {
-    Arc::new(move |_, _, p| Color::ones() * perlin.noise(p))
+pub fn noise(perlin: Perlin, scale: f64) -> Texture {
+    Arc::new(move |_, _, p| Color::ones() * 0.5 * (1.0 + perlin.noise(scale * p)))
+}
+
+#[allow(dead_code)]
+pub fn turbulent_noise(perlin: Perlin, scale: f64) -> Texture {
+    Arc::new(move |_, _, p| Color::ones() * perlin.turbulence(scale * p, 7))
+}
+
+pub fn marble(perlin: Perlin, scale: f64) -> Texture {
+    Arc::new(move |_, _, p| {
+        Color::ones()
+            * 0.5
+            * (1.0
+                + (scale * (p.x % 13.0 + 2.0) * (p.z % 7.0 + 3.0) * 0.05
+                    + 10.0 * perlin.turbulence(p, 7))
+                .sin())
+    })
 }

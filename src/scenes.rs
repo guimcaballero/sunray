@@ -37,7 +37,7 @@ fn many_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
     world.add(Box::new(Sphere {
         center: Point::new(-4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Lambertian(texture::noise(Perlin::new())),
+        material: Material::Lambertian(texture::noise(Perlin::new(), 4.0)),
     }));
     world.add(Box::new(Sphere {
         center: Point::new(4.0, 1.0, 0.0),
@@ -118,11 +118,11 @@ fn many_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
 fn two_perlin_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
     let mut world = HittableList::new();
 
-    let texture = texture::noise(Perlin::new());
+    let texture = texture::marble(Perlin::new(), 4.0);
     world.add(Box::new(Sphere {
-        center: Point::new(0.0, 2.0, 0.0),
-        radius: 2.0,
-        material: Material::Lambertian(texture.clone()),
+        center: Point::new(0.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Material::Metal(Color::new(1.0, 1.0, 1.0), 0.0),
     }));
     world.add(Box::new(Sphere {
         center: Point::new(0.0, -1000.0, 0.0),
