@@ -27,7 +27,7 @@ fn many_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
     world.add(Box::new(Sphere {
         center: Point::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
-        material: Material::Lambertian(checker),
+        material: Material::LambertianTexture(checker),
     }));
 
     // Spheres
@@ -39,7 +39,7 @@ fn many_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
     world.add(Box::new(Sphere {
         center: Point::new(-4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Lambertian(texture::noise(Perlin::new(), 4.0)),
+        material: Material::LambertianTexture(texture::noise(Perlin::new(), 4.0)),
     }));
     world.add(Box::new(Sphere {
         center: Point::new(4.0, 1.0, 0.0),
@@ -51,7 +51,7 @@ fn many_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
     world.add(Box::new(Sphere {
         center: Point::new(-4.0, 0.5, 2.0),
         radius: 0.5,
-        material: Material::Lambertian(texture::solid_color(Color::new(2.0, 2.0, 1.0))),
+        material: Material::Lambertian(Color::new(2.0, 2.0, 1.0)),
     }));
 
     for a in -5..5 {
@@ -74,14 +74,14 @@ fn many_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
                         time0: 0.0,
                         time1: 1.0,
                         radius: 0.2,
-                        material: Material::Lambertian(texture::solid_color(albedo)),
+                        material: Material::Lambertian(albedo),
                     }));
                 } else if choose_mat < 0.8 {
                     let texture = texture::image("earthmap.jpg");
                     world.add(Box::new(Sphere {
                         center,
                         radius: 0.2,
-                        material: Material::Lambertian(texture),
+                        material: Material::LambertianTexture(texture),
                     }));
                 } else if choose_mat < 0.95 {
                     let albedo = Color::random_range(0.5, 1.0);
@@ -136,7 +136,7 @@ fn two_perlin_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
     world.add(Box::new(Sphere {
         center: Point::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
-        material: Material::Lambertian(texture.clone()),
+        material: Material::LambertianTexture(texture.clone()),
     }));
 
     // Camera
@@ -168,7 +168,7 @@ fn earth(aspect_ratio: f64) -> (HittableList, Camera) {
     world.add(Box::new(Sphere {
         center: Point::new(0.0, 0.0, 0.0),
         radius: 2.0,
-        material: Material::Lambertian(texture),
+        material: Material::LambertianTexture(texture),
     }));
 
     // Camera

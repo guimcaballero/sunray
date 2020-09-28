@@ -33,13 +33,13 @@ fn main() {
     let path = Path::new("image.ppm");
     let display = path.display();
 
+    let result = get_image_string();
+
     // Open a file in write-only mode, returns `io::Result<File>`
     let mut file = match File::create(&path) {
         Err(why) => panic!("couldn't create {}: {}", display, why),
         Ok(file) => file,
     };
-
-    let result = get_image_string();
 
     match file.write_all(result.as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", display, why),

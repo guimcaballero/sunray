@@ -3,7 +3,8 @@ use rand::*;
 
 #[derive(Clone)]
 pub enum Material {
-    Lambertian(Texture),
+    Lambertian(Color),
+    LambertianTexture(Texture),
     Metal(Color, f64),
     Dielectric(f64),
 }
@@ -18,6 +19,17 @@ impl Material {
     ) -> bool {
         match self {
             Self::Lambertian(albedo) => {
+                let scatter_direction = hit_record.normal + Vec3::random_unit_vector();
+                let ray = Ray {
+                    origin: hit_record.point,
+                    direction: scatter_direction,
+                    time: ray_in.time,
+                };
+                *scattered = ray;
+                *attenuation = albedo.clone();
+                return true;
+            }
+            Self::LambertianTexture(albedo) => {
                 let scatter_direction = hit_record.normal + Vec3::random_unit_vector();
                 let ray = Ray {
                     origin: hit_record.point,

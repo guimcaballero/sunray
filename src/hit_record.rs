@@ -29,7 +29,7 @@ impl Default for HitRecord {
             normal: Vec3::zeros(),
             t: 0.0,
             front_face: false,
-            material: Material::Lambertian(texture::solid_color(Color::zeros())),
+            material: Material::Lambertian(Color::zeros()),
             u: 0.0,
             v: 0.0,
         }
