@@ -5,12 +5,14 @@ use rand::Rng;
 pub enum Scene {
     ManySpheres,
     TwoPerlinSpheres,
+    Earth,
 }
 
 pub fn generate_world(scene: Scene, aspect_ratio: f64) -> (HittableList, Camera) {
     match scene {
         Scene::ManySpheres => many_spheres(aspect_ratio),
         Scene::TwoPerlinSpheres => two_perlin_spheres(aspect_ratio),
+        Scene::Earth => earth(aspect_ratio),
     }
 }
 
@@ -62,7 +64,7 @@ fn many_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
             };
 
             if (center - Vec3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                if choose_mat < 0.8 {
+                if choose_mat < 0.7 {
                     let albedo = Color::random() * Color::random();
                     let center1 =
                         center + Vec3::new(0.0, rand::thread_rng().gen_range(0.0, 0.3), 0.0);
@@ -73,6 +75,13 @@ fn many_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
                         time1: 1.0,
                         radius: 0.2,
                         material: Material::Lambertian(texture::solid_color(albedo)),
+                    }));
+                } else if choose_mat < 0.8 {
+                    let texture = texture::image("earthmap.jpg");
+                    world.add(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Material::Lambertian(texture),
                     }));
                 } else if choose_mat < 0.95 {
                     let albedo = Color::random_range(0.5, 1.0);
@@ -128,6 +137,38 @@ fn two_perlin_spheres(aspect_ratio: f64) -> (HittableList, Camera) {
         center: Point::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
         material: Material::Lambertian(texture.clone()),
+    }));
+
+    // Camera
+    let lookfrom = Point::new(13.0, 2.0, 3.0);
+    let lookat = Point::new(0.0, 0.0, 0.0);
+    let dist_to_focus = 10.0;
+    let vfov = 20.0;
+    let aperture = 0.0;
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        vfov,
+        aspect_ratio,
+        aperture,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
+
+    (world, camera)
+}
+
+fn earth(aspect_ratio: f64) -> (HittableList, Camera) {
+    let mut world = HittableList::new();
+
+    let texture = texture::image("earthmap.jpg");
+    world.add(Box::new(Sphere {
+        center: Point::new(0.0, 0.0, 0.0),
+        radius: 2.0,
+        material: Material::Lambertian(texture),
     }));
 
     // Camera

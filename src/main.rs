@@ -25,7 +25,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::TwoPerlinSpheres;
+const SCENE: Scene = Scene::ManySpheres;
 
 fn main() {
     let start = Instant::now();
