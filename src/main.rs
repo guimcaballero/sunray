@@ -26,7 +26,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::ManySpheres;
+const SCENE: Scene = Scene::CornellBox;
 
 fn main() {
     let start = Instant::now();
@@ -59,11 +59,15 @@ fn get_image_string() -> String {
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 50;
+    let samples_per_pixel: u16 = 400;
     let max_depth: u16 = 50;
 
     // World
-    let (world, camera) = scenes::generate_world(SCENE, aspect_ratio);
+    let World {
+        hittables,
+        camera,
+        background_color,
+    } = scenes::generate_world(SCENE, aspect_ratio);
 
     let string = (0..image_height)
         .into_par_iter()
@@ -82,7 +86,7 @@ fn get_image_string() -> String {
                             / (image_height - 1) as f64;
 
                         let ray = camera.ray(u, v);
-                        pixel_color += ray_color(&ray, &world, max_depth);
+                        pixel_color += ray_color(&ray, background_color, &hittables, max_depth);
                     }
 
                     pixel_color.write_color(samples_per_pixel)
@@ -96,27 +100,29 @@ fn get_image_string() -> String {
     format!("P3\n{} {}\n255\n{}", image_width, image_height, string)
 }
 
-fn ray_color(ray: &Ray, world: &dyn Hittable, depth: u16) -> Color {
+fn ray_color(ray: &Ray, background_color: Color, hittables: &dyn Hittable, depth: u16) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
         return Color::new(0.0, 0.0, 0.0);
     }
 
     let mut hit_record = HitRecord::default();
-    if world.hit(&ray, 0.001, f64::INFINITY, &mut hit_record) {
-        let mut scattered = Ray::default();
-        let mut attenuation = Color::new(0.0, 0.0, 0.0);
-        if hit_record
-            .material
-            .scatter(&ray, &hit_record, &mut attenuation, &mut scattered)
-        {
-            return attenuation * ray_color(&scattered, world, depth - 1);
-        }
-
-        return Color::new(0.0, 0.0, 0.0);
+    if !hittables.hit(&ray, 0.001, f64::INFINITY, &mut hit_record) {
+        return background_color;
     }
 
-    let unit = ray.direction.normalize();
-    let t = 0.5 * (unit.y + 1.0);
-    (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.3, 0.3, 1.0)
+    let mut scattered = Ray::default();
+    let mut attenuation = Color::new(0.0, 0.0, 0.0);
+    let emitted = hit_record
+        .material
+        .emitted(hit_record.u, hit_record.v, hit_record.point);
+
+    if !hit_record
+        .material
+        .scatter(&ray, &hit_record, &mut attenuation, &mut scattered)
+    {
+        return emitted;
+    }
+
+    emitted + attenuation * ray_color(&scattered, background_color, hittables, depth - 1)
 }

@@ -93,10 +93,10 @@ impl Material {
 
                 return true;
             }
-            Self::DiffuseLight(emit) => {
+            Self::DiffuseLight(_) => {
                 return false;
             }
-            Self::DiffuseLightTexture(emit) => {
+            Self::DiffuseLightTexture(_) => {
                 return false;
             }
         }
