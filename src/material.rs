@@ -2,6 +2,7 @@ use crate::{hit_record::*, ray::*, texture::*, vec3::*};
 use rand::*;
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub enum Material {
     Lambertian(Color),
     LambertianTexture(Texture),

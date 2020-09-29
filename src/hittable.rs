@@ -1,4 +1,4 @@
-use crate::{aabb::*, hit_record::*, material::*, ray::*, vec3::*};
+use crate::{aabb::*, hit_record::*, hittable_list::*, material::*, ray::*, vec3::*};
 use std::f64::consts::PI;
 
 pub trait Hittable: Sync + Send {
@@ -272,6 +272,90 @@ impl Hittable for YZRect {
         *output_box = AABB {
             min: Point::new(self.y0, self.z0, self.k - 0.0001),
             max: Point::new(self.y1, self.z1, self.k + 0.0001),
+        };
+        true
+    }
+}
+
+pub struct Cube {
+    box_min: Point,
+    box_max: Point,
+    sides: HittableList,
+}
+
+impl Cube {
+    pub fn new(box_min: Point, box_max: Point, material: Material) -> Self {
+        let mut sides = HittableList::new();
+
+        sides.add(Box::new(XYRect {
+            x0: box_min.x,
+            x1: box_max.x,
+            y0: box_min.y,
+            y1: box_max.y,
+            k: box_min.z,
+            material: material.clone(),
+        }));
+        sides.add(Box::new(XYRect {
+            x0: box_min.x,
+            x1: box_max.x,
+            y0: box_min.y,
+            y1: box_max.y,
+            k: box_max.z,
+            material: material.clone(),
+        }));
+
+        sides.add(Box::new(XZRect {
+            x0: box_min.x,
+            x1: box_max.x,
+            z0: box_min.z,
+            z1: box_max.z,
+            k: box_min.y,
+            material: material.clone(),
+        }));
+        sides.add(Box::new(XZRect {
+            x0: box_min.x,
+            x1: box_max.x,
+            z0: box_min.z,
+            z1: box_max.z,
+            k: box_max.y,
+            material: material.clone(),
+        }));
+
+        sides.add(Box::new(YZRect {
+            y0: box_min.y,
+            y1: box_max.y,
+            z0: box_min.z,
+            z1: box_max.z,
+            k: box_min.x,
+            material: material.clone(),
+        }));
+        sides.add(Box::new(YZRect {
+            y0: box_min.y,
+            y1: box_max.y,
+            z0: box_min.z,
+            z1: box_max.z,
+            k: box_max.x,
+            material: material.clone(),
+        }));
+
+        Self {
+            box_min,
+            box_max,
+            sides,
+        }
+    }
+}
+
+impl Hittable for Cube {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+        self.sides.hit(ray, t_min, t_max, hit_record)
+    }
+
+    #[allow(unused_variables)]
+    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
+        *output_box = AABB {
+            min: self.box_min,
+            max: self.box_max,
         };
         true
     }

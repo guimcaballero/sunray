@@ -258,6 +258,12 @@ fn cornell_box(aspect_ratio: f64) -> World {
         material: Material::Lambertian(Color::new(0.73, 0.73, 0.73)),
     }));
 
+    hittables.add(Box::new(Cube::new(
+        Point::new(130.0, 0.0, 65.0),
+        Point::new(295.0, 165.0, 230.0),
+        Material::Lambertian(Color::new(0.4, 0.3, 0.3)),
+    )));
+
     // Light
     hittables.add(Box::new(XZRect {
         x0: 213.0,
