@@ -7,6 +7,8 @@ pub enum Material {
     LambertianTexture(Texture),
     Metal(Color, f64),
     Dielectric(f64),
+    DiffuseLight(Color),
+    DiffuseLightTexture(Texture),
 }
 
 impl Material {
@@ -91,6 +93,20 @@ impl Material {
 
                 return true;
             }
+            Self::DiffuseLight(emit) => {
+                return false;
+            }
+            Self::DiffuseLightTexture(emit) => {
+                return false;
+            }
+        }
+    }
+
+    pub fn emitted(&self, u: f64, v: f64, point: Point) -> Color {
+        match self {
+            Self::DiffuseLight(emit) => *emit,
+            Self::DiffuseLightTexture(emit) => emit(u, v, point),
+            _ => Color::zeros(),
         }
     }
 }
