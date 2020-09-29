@@ -1,4 +1,4 @@
-use crate::{material::*, ray::*, texture, vec3::*};
+use crate::{material::*, ray::*, vec3::*};
 
 #[derive(Clone)]
 pub struct HitRecord {

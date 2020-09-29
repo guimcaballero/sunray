@@ -1,5 +1,6 @@
 #![feature(clamp)]
 
+use image;
 use rand::Rng;
 use rayon::prelude::*;
 use std::fs::File;
@@ -45,6 +46,10 @@ fn main() {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
         Ok(_) => println!("successfully wrote to {}", display),
     }
+
+    // Yeah it's a bit dumb to open the image again
+    let img = image::open("image.ppm").unwrap();
+    img.save("image.png").unwrap();
 
     println!("{:.2?} seconds to run.", start.elapsed());
 }
