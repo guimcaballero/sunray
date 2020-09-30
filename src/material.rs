@@ -10,6 +10,7 @@ pub enum Material {
     Dielectric(f64),
     DiffuseLight(Color),
     DiffuseLightTexture(Texture),
+    Isotropic(Color),
 }
 
 impl Material {
@@ -99,6 +100,15 @@ impl Material {
             }
             Self::DiffuseLightTexture(_) => {
                 return false;
+            }
+            Self::Isotropic(albedo) => {
+                *scattered = Ray {
+                    origin: hit_record.point,
+                    direction: Vec3::random_in_unit_sphere(),
+                    time: ray_in.time,
+                };
+                *attenuation = albedo.clone();
+                return true;
             }
         }
     }

@@ -1,6 +1,8 @@
 use crate::{
     camera::*,
-    hittable::{cube::*, moving_sphere::*, rectangle::*, rotate::*, sphere::*, translate::*},
+    hittable::{
+        cube::*, medium::*, moving_sphere::*, rectangle::*, rotate::*, sphere::*, translate::*,
+    },
     hittable_list::*,
     material::*,
     perlin::*,
@@ -16,6 +18,7 @@ pub enum Scene {
     Earth,
     LightRectangle,
     CornellBox,
+    CornellSmokes,
 }
 
 pub struct World {
@@ -31,6 +34,7 @@ pub fn generate_world(scene: Scene, aspect_ratio: f64) -> World {
         Scene::Earth => earth(aspect_ratio),
         Scene::LightRectangle => light_rectangle(aspect_ratio),
         Scene::CornellBox => cornell_box(aspect_ratio),
+        Scene::CornellSmokes => cornell_smokes(aspect_ratio),
     }
 }
 
@@ -284,6 +288,109 @@ fn cornell_box(aspect_ratio: f64) -> World {
         ));
         let rot = Box::new(RotateY::new(cube, -18.0));
         Box::new(Translate::new(rot, Vec3::new(130.0, 0.0, 65.0)))
+    };
+    hittables.add(short_cube);
+
+    // Light
+    hittables.add(Box::new(XZRect {
+        x0: 213.0,
+        x1: 343.0,
+        z0: 227.0,
+        z1: 332.0,
+        k: 550.0,
+        material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
+    }));
+
+    let lookfrom = Point::new(278.0, 278.0, -800.0);
+    let lookat = Point::new(278.0, 278.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+    let vfov = 40.0;
+    let aperture = 0.0;
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        vfov,
+        aspect_ratio,
+        aperture,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
+
+    World {
+        hittables,
+        camera,
+        background_color: Color::zeros(),
+    }
+}
+
+fn cornell_smokes(aspect_ratio: f64) -> World {
+    let mut hittables = HittableList::new();
+
+    // Walls
+    hittables.add(Box::new(YZRect {
+        y0: 0.0,
+        y1: 555.0,
+        z0: 0.0,
+        z1: 555.0,
+        k: 555.0,
+        material: Material::Lambertian(Color::new(0.12, 0.45, 0.15)),
+    }));
+    hittables.add(Box::new(YZRect {
+        y0: 0.0,
+        y1: 555.0,
+        z0: 0.0,
+        z1: 555.0,
+        k: 0.0,
+        material: Material::Lambertian(Color::new(0.65, 0.05, 0.05)),
+    }));
+    hittables.add(Box::new(XZRect {
+        x0: 0.0,
+        x1: 555.0,
+        z0: 0.0,
+        z1: 555.0,
+        k: 0.0,
+        material: Material::Lambertian(Color::from(0.73)),
+    }));
+    hittables.add(Box::new(XZRect {
+        x0: 0.0,
+        x1: 555.0,
+        z0: 0.0,
+        z1: 555.0,
+        k: 555.0,
+        material: Material::Lambertian(Color::from(0.73)),
+    }));
+    hittables.add(Box::new(XYRect {
+        x0: 0.0,
+        x1: 555.0,
+        y0: 0.0,
+        y1: 555.0,
+        k: 555.0,
+        material: Material::Lambertian(Color::from(0.73)),
+    }));
+
+    let tall_cube = {
+        let cube = Box::new(Cube::new(
+            Point::zeros(),
+            Point::new(165.0, 330.0, 165.0),
+            Material::Lambertian(Color::from(0.73)),
+        ));
+        let rot = Box::new(RotateY::new(cube, 15.0));
+        let translate = Box::new(Translate::new(rot, Vec3::new(265.0, 0.0, 295.0)));
+        Box::new(ConstantMedium::new(translate, 0.01, Color::zeros()))
+    };
+    hittables.add(tall_cube);
+    let short_cube = {
+        let cube = Box::new(Cube::new(
+            Point::zeros(),
+            Point::from(165.0),
+            Material::Lambertian(Color::from(0.73)),
+        ));
+        let rot = Box::new(RotateY::new(cube, -18.0));
+        let translate = Box::new(Translate::new(rot, Vec3::new(130.0, 0.0, 65.0)));
+        Box::new(ConstantMedium::new(translate, 0.01, Color::ones()))
     };
     hittables.add(short_cube);
 

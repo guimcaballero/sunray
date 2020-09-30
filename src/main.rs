@@ -26,7 +26,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::CornellBox;
+const SCENE: Scene = Scene::CornellSmokes;
 
 fn main() {
     let start = Instant::now();

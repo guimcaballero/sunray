@@ -1,6 +1,7 @@
 use crate::{aabb::*, hit_record::*, ray::*};
 
 pub mod cube;
+pub mod medium;
 pub mod moving_sphere;
 pub mod rectangle;
 pub mod rotate;
