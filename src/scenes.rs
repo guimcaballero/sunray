@@ -239,7 +239,7 @@ fn cornell_box(aspect_ratio: f64) -> World {
         z0: 0.0,
         z1: 555.0,
         k: 0.0,
-        material: Material::Lambertian(Color::new(0.73, 0.73, 0.73)),
+        material: Material::Lambertian(Color::from(0.73)),
     }));
     hittables.add(Box::new(XZRect {
         x0: 0.0,
@@ -247,7 +247,7 @@ fn cornell_box(aspect_ratio: f64) -> World {
         z0: 0.0,
         z1: 555.0,
         k: 555.0,
-        material: Material::Lambertian(Color::new(0.73, 0.73, 0.73)),
+        material: Material::Lambertian(Color::from(0.73)),
     }));
     hittables.add(Box::new(XYRect {
         x0: 0.0,
@@ -255,14 +255,29 @@ fn cornell_box(aspect_ratio: f64) -> World {
         y0: 0.0,
         y1: 555.0,
         k: 555.0,
-        material: Material::Lambertian(Color::new(0.73, 0.73, 0.73)),
+        material: Material::Lambertian(Color::from(0.73)),
     }));
 
-    hittables.add(Box::new(Cube::new(
-        Point::new(130.0, 0.0, 65.0),
-        Point::new(295.0, 165.0, 230.0),
-        Material::Lambertian(Color::new(0.4, 0.3, 0.3)),
-    )));
+    let tall_cube = {
+        let cube = Box::new(Cube::new(
+            Point::zeros(),
+            Point::new(165.0, 330.0, 165.0),
+            Material::Lambertian(Color::from(0.73)),
+        ));
+        let rot = Box::new(RotateY::new(cube, 15.0));
+        Box::new(Translate::new(rot, Vec3::new(265.0, 0.0, 295.0)))
+    };
+    hittables.add(tall_cube);
+    let short_cube = {
+        let cube = Box::new(Cube::new(
+            Point::zeros(),
+            Point::from(165.0),
+            Material::Lambertian(Color::from(0.73)),
+        ));
+        let rot = Box::new(RotateY::new(cube, -18.0));
+        Box::new(Translate::new(rot, Vec3::new(130.0, 0.0, 65.0)))
+    };
+    hittables.add(short_cube);
 
     // Light
     hittables.add(Box::new(XZRect {
