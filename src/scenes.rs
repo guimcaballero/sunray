@@ -1,4 +1,12 @@
-use crate::{camera::*, hittable::*, hittable_list::*, material::*, perlin::*, texture, vec3::*};
+use crate::{
+    camera::*,
+    hittable::{cube::*, moving_sphere::*, rectangle::*, rotate::*, sphere::*, translate::*},
+    hittable_list::*,
+    material::*,
+    perlin::*,
+    texture,
+    vec3::*,
+};
 use rand::Rng;
 
 #[allow(dead_code)]
