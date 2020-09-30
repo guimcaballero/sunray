@@ -48,12 +48,24 @@ impl Vec3 {
         Self { x, y, z }
     }
 
+    pub fn from(val: f64) -> Self {
+        Self::new(val, val, val)
+    }
+
     pub fn zeros() -> Self {
-        Self::new(0.0, 0.0, 0.0)
+        Self::from(0.0)
     }
 
     pub fn ones() -> Self {
-        Self::new(1.0, 1.0, 1.0)
+        Self::from(1.0)
+    }
+
+    pub fn infinity() -> Self {
+        Self::from(f64::INFINITY)
+    }
+
+    pub fn neg_infinity() -> Self {
+        Self::from(-f64::INFINITY)
     }
 
     pub fn random() -> Self {

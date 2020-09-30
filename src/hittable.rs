@@ -3,7 +3,7 @@ use std::f64::consts::PI;
 
 pub trait Hittable: Sync + Send {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool;
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB>;
 }
 
 pub struct Sphere {
@@ -56,12 +56,11 @@ impl Hittable for Sphere {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
-        *output_box = AABB {
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+        Some(AABB {
             min: self.center - Vec3::new(self.radius, self.radius, self.radius),
             max: self.center + Vec3::new(self.radius, self.radius, self.radius),
-        };
-        true
+        })
     }
 }
 
@@ -122,7 +121,7 @@ impl Hittable for MovingSphere {
         false
     }
 
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
         let box0 = AABB {
             min: self.center(t0) - Vec3::new(self.radius, self.radius, self.radius),
             max: self.center(t0) + Vec3::new(self.radius, self.radius, self.radius),
@@ -132,9 +131,7 @@ impl Hittable for MovingSphere {
             max: self.center(t1) + Vec3::new(self.radius, self.radius, self.radius),
         };
 
-        *output_box = box0.surrounding_box(box1);
-
-        true
+        Some(box0.surrounding_box(box1))
     }
 }
 
@@ -180,12 +177,11 @@ impl Hittable for XYRect {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
-        *output_box = AABB {
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+        Some(AABB {
             min: Point::new(self.x0, self.y0, self.k - 0.0001),
             max: Point::new(self.x1, self.y1, self.k + 0.0001),
-        };
-        true
+        })
     }
 }
 
@@ -224,12 +220,11 @@ impl Hittable for XZRect {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
-        *output_box = AABB {
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+        Some(AABB {
             min: Point::new(self.x0, self.z0, self.k - 0.0001),
             max: Point::new(self.x1, self.z1, self.k + 0.0001),
-        };
-        true
+        })
     }
 }
 
@@ -268,12 +263,11 @@ impl Hittable for YZRect {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
-        *output_box = AABB {
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+        Some(AABB {
             min: Point::new(self.y0, self.z0, self.k - 0.0001),
             max: Point::new(self.y1, self.z1, self.k + 0.0001),
-        };
-        true
+        })
     }
 }
 
@@ -352,10 +346,13 @@ impl Hittable for Cube {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
-        *output_box = AABB {
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+        Some(AABB {
             min: self.box_min,
             max: self.box_max,
+        })
+    }
+}
         };
         true
     }

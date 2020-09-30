@@ -28,10 +28,8 @@ impl Hittable for BVHNode {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
-        *output_box = self.bbox;
-
-        return true;
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+        Some(self.bbox)
     }
 }
 
@@ -77,36 +75,31 @@ impl BVHNode {
             )
         };
 
-        let mut box_left = AABB::default();
-        let mut box_right = AABB::default();
-
-        if !left.bounding_box(time0, time1, &mut box_left)
-            || !right.bounding_box(time0, time1, &mut box_right)
-        {
-            panic!("No bounding box in bvh_node constructor.");
+        if let Some(box_left) = left.bounding_box(time0, time1) {
+            if let Some(box_right) = right.bounding_box(time0, time1) {
+                return Self {
+                    left: Some(left),
+                    right: Some(right),
+                    bbox: box_left.surrounding_box(box_right),
+                };
+            }
         }
-
-        Self {
-            left: Some(left),
-            right: Some(right),
-            bbox: box_left.surrounding_box(box_right),
-        }
+        panic!("No bounding box in bvh_node constructor.");
     }
 }
 
 fn box_compare<'a>(a: &'a dyn Hittable, b: &'a dyn Hittable, axis: u16) -> Ordering {
-    let mut box_a = AABB::default();
-    let mut box_b = AABB::default();
-
-    if !a.bounding_box(0.0, 0.0, &mut box_a) || !b.bounding_box(0.0, 0.0, &mut box_b) {
-        panic!("No bounding box in bvh_node constructor.");
+    if let Some(box_a) = a.bounding_box(0.0, 0.0) {
+        if let Some(box_b) = b.bounding_box(0.0, 0.0) {
+            if let Some(cmp) = box_a.min[axis].partial_cmp(&box_b.min[axis]) {
+                return cmp;
+            } else {
+                panic!("Can't compare");
+            }
+        }
     }
 
-    if let Some(cmp) = box_a.min[axis].partial_cmp(&box_b.min[axis]) {
-        return cmp;
-    } else {
-        panic!("Can't compare");
-    }
+    panic!("No bounding box in bvh_node constructor.");
 }
 
 #[allow(dead_code)]

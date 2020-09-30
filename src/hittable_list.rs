@@ -38,28 +38,21 @@ impl<'a> Hittable for HittableList {
         return hit_anything;
     }
 
-    fn bounding_box(&self, t0: f64, t1: f64, output_box: &mut AABB) -> bool {
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
         if self.objects.is_empty() {
-            return false;
+            return None;
         }
 
         let mut temp_box = AABB::default();
-        let mut first_box = true;
 
         for object in &self.objects {
-            if !object.bounding_box(t0, t1, &mut temp_box) {
-                return false;
-            }
-
-            *output_box = if first_box {
-                temp_box
+            if let Some(bbox) = object.bounding_box(t0, t1) {
+                temp_box = temp_box.surrounding_box(bbox);
             } else {
-                output_box.surrounding_box(temp_box)
-            };
-
-            first_box = false;
+                return None;
+            }
         }
 
-        return true;
+        Some(temp_box)
     }
 }
