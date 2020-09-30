@@ -56,36 +56,31 @@ impl RotateY {
 
 impl Hittable for RotateY {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
-        let o_x = self.cos_theta * ray.origin.x - self.sin_theta * ray.origin.z;
-        let o_z = self.sin_theta * ray.origin.x + self.cos_theta * ray.origin.z;
-
-        let d_x = self.cos_theta * ray.direction.x - self.sin_theta * ray.direction.z;
-        let d_z = self.sin_theta * ray.direction.x + self.cos_theta * ray.direction.z;
-
-        let rotated_ray = Ray {
-            origin: Point::new(o_x, ray.origin.y, o_z),
-            direction: Vec3::new(d_x, ray.direction.y, d_z),
-            time: ray.time,
-        };
-
-        if !self.hittable.hit(&rotated_ray, t_min, t_max, hit_record) {
-            return false;
+        // Adapted from https://github.com/cbiffle/rtiow-rust/blob/master/src/object.rs#L349 because what I had before did weird stuff
+        fn rot(p: Vec3, sin_theta: f64, cos_theta: f64) -> Vec3 {
+            Vec3::new(
+                p.dot(&Vec3::new(cos_theta, 0., sin_theta)),
+                p.dot(&Vec3::new(0., 1., 0.)),
+                p.dot(&Vec3::new(-sin_theta, 0., cos_theta)),
+            )
         }
 
-        hit_record.point.x =
-            self.cos_theta * hit_record.point.x + self.sin_theta * hit_record.point.z;
-        hit_record.point.z =
-            -self.sin_theta * hit_record.point.x + self.cos_theta * hit_record.point.z;
+        let rot_ray = Ray {
+            origin: rot(ray.origin, -self.sin_theta, self.cos_theta),
+            direction: rot(ray.direction, -self.sin_theta, self.cos_theta),
+            ..*ray
+        };
 
-        hit_record.normal.x =
-            self.cos_theta * hit_record.normal.x + self.sin_theta * hit_record.normal.z;
-        hit_record.normal.z =
-            -self.sin_theta * hit_record.normal.x + self.cos_theta * hit_record.normal.z;
-
-        let normal = hit_record.normal;
-        hit_record.set_face_normal(&rotated_ray, &normal);
-
-        true
+        let mut temp_rec = HitRecord::default();
+        if self.hittable.hit(&rot_ray, t_min, t_max, &mut temp_rec) {
+            *hit_record = HitRecord {
+                point: rot(temp_rec.point, self.sin_theta, self.cos_theta),
+                normal: rot(temp_rec.normal, self.sin_theta, self.cos_theta),
+                ..temp_rec
+            };
+            return true;
+        }
+        false
     }
 
     #[allow(unused_variables)]
