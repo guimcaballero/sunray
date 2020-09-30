@@ -26,7 +26,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::CornellSmokes;
+const SCENE: Scene = Scene::FinalScene;
 
 fn main() {
     let start = Instant::now();
@@ -57,9 +57,9 @@ fn main() {
 fn get_image_string() -> String {
     // Image
     let aspect_ratio = 3.0 / 2.0;
-    let image_width = 1200;
+    let image_width = 800;
     let image_height = (image_width as f64 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 400;
+    let samples_per_pixel: u16 = 1000;
     let max_depth: u16 = 50;
 
     // World

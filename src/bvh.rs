@@ -16,11 +16,13 @@ impl Hittable for BVHNode {
         }
 
         let mut hit_left = false;
+        let mut hit_right = false;
+
         if let Some(left) = &self.left {
             hit_left = left.hit(ray, t_min, t_max, hit_record);
         }
-        let mut hit_right = false;
-        if let Some(right) = &self.left {
+        let t_max = if hit_left { hit_record.t } else { t_max };
+        if let Some(right) = &self.right {
             hit_right = right.hit(ray, t_min, t_max, hit_record);
         }
 
@@ -35,13 +37,7 @@ impl Hittable for BVHNode {
 
 impl BVHNode {
     #[allow(dead_code)]
-    pub fn new(
-        objects: &mut Vec<Box<dyn Hittable>>,
-        start: usize,
-        end: usize,
-        time0: f64,
-        time1: f64,
-    ) -> Self {
+    pub fn new(mut objects: Vec<Box<dyn Hittable>>, time0: f64, time1: f64) -> Self {
         let axis = rand::thread_rng().gen_range(0, 2);
 
         let comparator = if axis == 0 {
@@ -52,38 +48,42 @@ impl BVHNode {
             box_z_compare
         };
 
-        let object_span = end - start;
+        objects.sort_by(|a, b| comparator(&**a, &**b));
 
-        let (left, right) = if object_span == 1 {
-            // TODO Here we don't have the same item twice, because we're removing it
-            ((objects.remove(start)), objects.remove(start))
-        } else if object_span == 2 {
-            match comparator(&*objects[start], &*objects[start + 1]) {
-                Ordering::Greater => ((objects.remove(start)), objects.remove(start + 1)),
-                _ => ((objects.remove(start + 1)), objects.remove(start)),
+        match objects.len() {
+            1 => {
+                let left = objects.pop().unwrap();
+
+                if let Some(box_left) = left.bounding_box(time0, time1) {
+                    return Self {
+                        left: Some(left),
+                        right: None,
+                        bbox: box_left,
+                    };
+                }
             }
-        } else {
-            objects.sort_by(|a, b| comparator(&**a, &**b));
-            let mid = start + object_span / 2;
+            _ => {
+                let left = Box::new(BVHNode::new(
+                    objects
+                        .drain(objects.len() / 2..)
+                        .collect::<Vec<Box<dyn Hittable>>>(),
+                    time0,
+                    time1,
+                ));
+                let right = Box::new(BVHNode::new(objects, time0, time1));
 
-            let left_box = BVHNode::new(objects, start, mid, time0, time1);
-            let right_box = BVHNode::new(objects, mid, end, time0, time1);
-
-            (
-                Box::new(left_box) as Box<dyn Hittable>,
-                Box::new(right_box) as Box<dyn Hittable>,
-            )
-        };
-
-        if let Some(box_left) = left.bounding_box(time0, time1) {
-            if let Some(box_right) = right.bounding_box(time0, time1) {
-                return Self {
-                    left: Some(left),
-                    right: Some(right),
-                    bbox: box_left.surrounding_box(box_right),
-                };
+                if let Some(box_left) = left.bounding_box(time0, time1) {
+                    if let Some(box_right) = right.bounding_box(time0, time1) {
+                        return Self {
+                            left: Some(left),
+                            right: Some(right),
+                            bbox: box_left.surrounding_box(box_right),
+                        };
+                    }
+                }
             }
         }
+
         panic!("No bounding box in bvh_node constructor.");
     }
 }

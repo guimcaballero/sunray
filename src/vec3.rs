@@ -1,6 +1,7 @@
 use rand::*;
 use std::f64::consts::*;
 use std::fmt::Debug;
+
 #[derive(Copy, Clone, Debug)]
 pub struct Vec3 {
     pub x: f64,

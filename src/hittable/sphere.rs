@@ -1,6 +1,7 @@
 use crate::{hittable::*, material::*, vec3::*};
 use std::f64::consts::PI;
 
+#[derive(Clone)]
 pub struct Sphere {
     pub center: Point,
     pub radius: f64,
