@@ -69,8 +69,9 @@ impl Perlin {
 fn perlin_generate_perm() -> Vec<usize> {
     let mut vec: Vec<usize> = (0..POINT_COUNT).collect();
 
+    let mut rng = rand::thread_rng();
     for i in (1..POINT_COUNT).rev() {
-        vec.swap(i.into(), rand::thread_rng().gen_range(0, i).into());
+        vec.swap(i.into(), rng.gen_range(0, i).into());
     }
 
     return vec;

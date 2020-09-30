@@ -70,18 +70,20 @@ impl Vec3 {
     }
 
     pub fn random() -> Self {
+        let mut rng = rand::thread_rng();
         Self {
-            x: rand::thread_rng().gen::<f64>(),
-            y: rand::thread_rng().gen::<f64>(),
-            z: rand::thread_rng().gen::<f64>(),
+            x: rng.gen::<f64>(),
+            y: rng.gen::<f64>(),
+            z: rng.gen::<f64>(),
         }
     }
 
     pub fn random_range(min: f64, max: f64) -> Self {
+        let mut rng = rand::thread_rng();
         Self {
-            x: rand::thread_rng().gen_range(min, max),
-            y: rand::thread_rng().gen_range(min, max),
-            z: rand::thread_rng().gen_range(min, max),
+            x: rng.gen_range(min, max),
+            y: rng.gen_range(min, max),
+            z: rng.gen_range(min, max),
         }
     }
 
@@ -96,8 +98,9 @@ impl Vec3 {
     }
 
     pub fn random_unit_vector() -> Self {
-        let a = rand::thread_rng().gen_range(0.0, TAU);
-        let z: f64 = rand::thread_rng().gen_range(-1.0, 1.0);
+        let mut rng = rand::thread_rng();
+        let a = rng.gen_range(0.0, TAU);
+        let z: f64 = rng.gen_range(-1.0, 1.0);
         let r = (1.0 - z * z).sqrt();
         Self {
             x: r * a.cos(),
@@ -116,10 +119,11 @@ impl Vec3 {
     }
 
     pub fn random_in_unit_disk() -> Self {
+        let mut rng = rand::thread_rng();
         loop {
             let vec = Self {
-                x: rand::thread_rng().gen_range(-1.0, 1.0),
-                y: rand::thread_rng().gen_range(-1.0, 1.0),
+                x: rng.gen_range(-1.0, 1.0),
+                y: rng.gen_range(-1.0, 1.0),
                 z: 0.0,
             };
 

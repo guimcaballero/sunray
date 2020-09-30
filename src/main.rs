@@ -59,7 +59,7 @@ fn get_image_string() -> String {
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 800;
     let image_height = (image_width as f64 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 1000;
+    let samples_per_pixel: u16 = 200;
     let max_depth: u16 = 50;
 
     // World
@@ -79,11 +79,10 @@ fn get_image_string() -> String {
                 .map(|i| {
                     let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
+                    let mut rng = rand::thread_rng();
                     for _s in 0..samples_per_pixel {
-                        let u =
-                            (i as f64 + rand::thread_rng().gen::<f64>()) / (image_width - 1) as f64;
-                        let v = (j as f64 + rand::thread_rng().gen::<f64>())
-                            / (image_height - 1) as f64;
+                        let u = (i as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
+                        let v = (j as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
 
                         let ray = camera.ray(u, v);
                         pixel_color += ray_color(&ray, background_color, &hittables, max_depth);
