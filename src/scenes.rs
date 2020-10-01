@@ -23,7 +23,7 @@ pub enum Scene {
     CornellSmokes,
     FinalScene,
     CustomScene,
-    TestSDF,
+    SpaceDonut,
 }
 
 pub struct World {
@@ -42,7 +42,7 @@ pub fn generate_world(scene: Scene, aspect_ratio: f32) -> World {
         Scene::CornellSmokes => cornell_smokes(aspect_ratio),
         Scene::FinalScene => final_scene(aspect_ratio),
         Scene::CustomScene => custom_scene(aspect_ratio),
-        Scene::TestSDF => test_sdf(aspect_ratio),
+        Scene::SpaceDonut => space_dount(aspect_ratio),
     }
 }
 
@@ -684,12 +684,12 @@ fn custom_scene(aspect_ratio: f32) -> World {
     }
 }
 
-fn test_sdf(aspect_ratio: f32) -> World {
-    let mut boxes: Vec<Box<dyn Hittable>> = Vec::new();
-
+fn space_dount(aspect_ratio: f32) -> World {
+    let mut hittables = HittableList::new();
     let mut rng = rand::thread_rng();
 
     // Floor
+    let mut boxes: Vec<Box<dyn Hittable>> = Vec::new();
     for i in 0..20 {
         for j in 0..20 {
             let w = 100.0;
@@ -711,8 +711,24 @@ fn test_sdf(aspect_ratio: f32) -> World {
         }
     }
     let bvh = BVHNode::new(boxes, 0.0, 1.0);
+    hittables.add(Box::new(bvh));
 
-    let mut hittables = HittableList::new();
+    // Stars
+    let mut stars: Vec<Box<dyn Hittable>> = Vec::new();
+    // Floor
+    for i in 0..200 {
+        let rad = (i as f32 / 90.) * std::f32::consts::TAU;
+
+        let x = rad.cos() * 800.;
+        let y = 400. + rng.gen_range(-400., 400.);
+        let z = rad.sin() * 800.;
+        stars.push(Box::new(Sphere {
+            center: Point::new(x, y, z),
+            radius: 0.5,
+            material: Material::DiffuseLight(Color::ones() * 10.),
+        }));
+    }
+    let bvh = BVHNode::new(stars, 0.0, 1.0);
     hittables.add(Box::new(bvh));
 
     hittables.add(Box::new(TracedSDF {
