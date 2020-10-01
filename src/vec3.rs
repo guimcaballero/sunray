@@ -47,6 +47,31 @@ impl Vec3 {
     }
 
     #[inline(always)]
+    pub fn abs(&self) -> Self {
+        Self {
+            x: self.x.abs(),
+            y: self.y.abs(),
+            z: self.z.abs(),
+        }
+    }
+    #[inline(always)]
+    pub fn max(&self, val: f32) -> Self {
+        Self {
+            x: self.x.max(val),
+            y: self.y.max(val),
+            z: self.z.max(val),
+        }
+    }
+    #[inline(always)]
+    pub fn min(&self, val: f32) -> Self {
+        Self {
+            x: self.x.min(val),
+            y: self.y.min(val),
+            z: self.z.min(val),
+        }
+    }
+
+    #[inline(always)]
     pub fn multiply_components(&self) -> f32 {
         self.x * self.y * self.z
     }

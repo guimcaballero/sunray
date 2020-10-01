@@ -26,7 +26,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::CustomScene;
+const SCENE: Scene = Scene::TestSDF;
 
 fn main() {
     let start = Instant::now();
@@ -59,7 +59,7 @@ fn get_image_string() -> String {
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 800;
     let image_height = (image_width as f32 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 1000;
+    let samples_per_pixel: u16 = 500;
     let max_depth: u16 = 50;
 
     // World
