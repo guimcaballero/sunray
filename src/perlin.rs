@@ -23,7 +23,7 @@ impl Perlin {
         }
     }
 
-    pub fn noise(&self, point: Point) -> f64 {
+    pub fn noise(&self, point: Point) -> f32 {
         let ijk = Point {
             x: point.x.floor(),
             y: point.y.floor(),
@@ -51,7 +51,7 @@ impl Perlin {
         trilinear_interpolation(&corners, uvw)
     }
 
-    pub fn turbulence(&self, point: Point, depth: u8) -> f64 {
+    pub fn turbulence(&self, point: Point, depth: u8) -> f32 {
         let mut accum = 0.0;
         let mut weight = 1.0;
         let mut temp_p = point;
@@ -78,7 +78,7 @@ fn perlin_generate_perm() -> Vec<usize> {
 }
 
 type Corners = [[[Vec3; 2]; 2]; 2];
-fn trilinear_interpolation(corners: &Corners, uvw: Vec3) -> f64 {
+fn trilinear_interpolation(corners: &Corners, uvw: Vec3) -> f32 {
     let mut accum = 0.0;
 
     let one_minus_uvw = Vec3::ones() - uvw;
@@ -86,7 +86,7 @@ fn trilinear_interpolation(corners: &Corners, uvw: Vec3) -> f64 {
     for i in 0..2 {
         for j in 0..2 {
             for k in 0..2 {
-                let ijk = Vec3::new(i as f64, j as f64, k as f64);
+                let ijk = Vec3::new(i as f32, j as f32, k as f32);
                 let one_minus_ijk = Vec3::ones() - ijk;
 
                 accum += (ijk * uvw + one_minus_ijk * one_minus_uvw).multiply_components()

@@ -9,6 +9,6 @@ pub mod sphere;
 pub mod translate;
 
 pub trait Hittable: Sync + Send {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB>;
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool;
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB>;
 }

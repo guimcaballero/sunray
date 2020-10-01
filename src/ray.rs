@@ -5,11 +5,11 @@ use std::fmt::Debug;
 pub struct Ray {
     pub origin: Point,
     pub direction: Vec3,
-    pub time: f64,
+    pub time: f32,
 }
 
 impl Ray {
-    pub fn at(&self, t: f64) -> Point {
+    pub fn at(&self, t: f32) -> Point {
         self.origin + self.direction * t
     }
 }

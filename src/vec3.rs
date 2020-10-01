@@ -1,23 +1,25 @@
 use rand::*;
-use std::f64::consts::*;
+use std::f32::consts::*;
 use std::fmt::Debug;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vec3 {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 pub type Point = Vec3;
 pub type Color = Vec3;
 
 impl Vec3 {
-    pub fn length_squared(&self) -> f64 {
+    #[inline(always)]
+    pub fn length_squared(&self) -> f32 {
         self.dot(self)
     }
 
-    pub fn length(&self) -> f64 {
+    #[inline(always)]
+    pub fn length(&self) -> f32 {
         self.length_squared().sqrt()
     }
 
@@ -25,10 +27,12 @@ impl Vec3 {
         println!("{} {} {}", self.x, self.y, self.z);
     }
 
-    pub fn dot(&self, other: &Self) -> f64 {
+    #[inline(always)]
+    pub fn dot(&self, other: &Self) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
+    #[inline(always)]
     pub fn cross(&self, other: &Self) -> Self {
         Self {
             x: self.y * other.z - self.z * other.y,
@@ -37,48 +41,58 @@ impl Vec3 {
         }
     }
 
+    #[inline(always)]
     pub fn normalize(&self) -> Self {
         *self / self.length()
     }
 
-    pub fn multiply_components(&self) -> f64 {
+    #[inline(always)]
+    pub fn multiply_components(&self) -> f32 {
         self.x * self.y * self.z
     }
 
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
+    #[inline(always)]
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
 
-    pub fn from(val: f64) -> Self {
+    #[inline(always)]
+    pub fn from(val: f32) -> Self {
         Self::new(val, val, val)
     }
 
+    #[inline(always)]
     pub fn zeros() -> Self {
         Self::from(0.0)
     }
 
+    #[inline(always)]
     pub fn ones() -> Self {
         Self::from(1.0)
     }
 
+    #[inline(always)]
     pub fn infinity() -> Self {
-        Self::from(f64::INFINITY)
+        Self::from(f32::INFINITY)
     }
 
+    #[inline(always)]
     pub fn neg_infinity() -> Self {
-        Self::from(-f64::INFINITY)
+        Self::from(-f32::INFINITY)
     }
 
+    #[inline(always)]
     pub fn random() -> Self {
         let mut rng = rand::thread_rng();
         Self {
-            x: rng.gen::<f64>(),
-            y: rng.gen::<f64>(),
-            z: rng.gen::<f64>(),
+            x: rng.gen::<f32>(),
+            y: rng.gen::<f32>(),
+            z: rng.gen::<f32>(),
         }
     }
 
-    pub fn random_range(min: f64, max: f64) -> Self {
+    #[inline(always)]
+    pub fn random_range(min: f32, max: f32) -> Self {
         let mut rng = rand::thread_rng();
         Self {
             x: rng.gen_range(min, max),
@@ -87,6 +101,7 @@ impl Vec3 {
         }
     }
 
+    #[inline(always)]
     pub fn random_in_unit_sphere() -> Self {
         loop {
             let vec = Self::random_range(-1.0, 1.0);
@@ -97,10 +112,11 @@ impl Vec3 {
         }
     }
 
+    #[inline(always)]
     pub fn random_unit_vector() -> Self {
         let mut rng = rand::thread_rng();
         let a = rng.gen_range(0.0, TAU);
-        let z: f64 = rng.gen_range(-1.0, 1.0);
+        let z: f32 = rng.gen_range(-1.0, 1.0);
         let r = (1.0 - z * z).sqrt();
         Self {
             x: r * a.cos(),
@@ -109,6 +125,7 @@ impl Vec3 {
         }
     }
 
+    #[inline(always)]
     pub fn random_in_hemisphere(normal: &Vec3) -> Self {
         let in_unit_sphere = Self::random_in_unit_sphere();
         if in_unit_sphere.dot(normal) > 0.0 {
@@ -118,6 +135,7 @@ impl Vec3 {
         }
     }
 
+    #[inline(always)]
     pub fn random_in_unit_disk() -> Self {
         let mut rng = rand::thread_rng();
         loop {
@@ -133,11 +151,13 @@ impl Vec3 {
         }
     }
 
+    #[inline(always)]
     pub fn reflect(&self, other: &Vec3) -> Vec3 {
         *self - 2.0 * self.dot(other) * *other
     }
 
-    pub fn refract(&self, normal: &Vec3, eta_over_etai: f64) -> Self {
+    #[inline(always)]
+    pub fn refract(&self, normal: &Vec3, eta_over_etai: f32) -> Self {
         let cos_theta = self.dot(&-*normal);
         let r_out_perp = eta_over_etai * (*self + cos_theta * *normal);
         let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * *normal;
@@ -153,7 +173,7 @@ impl Color {
             z: mut b,
         } = self;
 
-        let scale = 1.0 / samples_per_pixel as f64;
+        let scale = 1.0 / samples_per_pixel as f32;
         r = (scale * r).sqrt();
         g = (scale * g).sqrt();
         b = (scale * b).sqrt();
@@ -181,7 +201,7 @@ impl Neg for Vec3 {
 }
 
 impl Index<u16> for Vec3 {
-    type Output = f64;
+    type Output = f32;
 
     fn index(&self, index: u16) -> &Self::Output {
         match index {
@@ -270,10 +290,10 @@ impl MulAssign for Vec3 {
     }
 }
 
-impl Mul<f64> for Vec3 {
+impl Mul<f32> for Vec3 {
     type Output = Self;
 
-    fn mul(self, scalar: f64) -> Self {
+    fn mul(self, scalar: f32) -> Self {
         Self {
             x: self.x * scalar,
             y: self.y * scalar,
@@ -282,7 +302,7 @@ impl Mul<f64> for Vec3 {
     }
 }
 
-impl Mul<Vec3> for f64 {
+impl Mul<Vec3> for f32 {
     type Output = Vec3;
 
     fn mul(self, vec: Vec3) -> Vec3 {
@@ -316,10 +336,10 @@ impl DivAssign for Vec3 {
     }
 }
 
-impl Div<f64> for Vec3 {
+impl Div<f32> for Vec3 {
     type Output = Self;
 
-    fn div(self, scalar: f64) -> Self {
+    fn div(self, scalar: f32) -> Self {
         Self {
             x: self.x / scalar,
             y: self.y / scalar,

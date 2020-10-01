@@ -10,7 +10,7 @@ pub struct BVHNode {
 }
 
 impl Hittable for BVHNode {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         if !self.bbox.hit(ray, t_min, t_max) {
             return false;
         }
@@ -30,14 +30,14 @@ impl Hittable for BVHNode {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         Some(self.bbox)
     }
 }
 
 impl BVHNode {
     #[allow(dead_code)]
-    pub fn new(mut objects: Vec<Box<dyn Hittable>>, time0: f64, time1: f64) -> Self {
+    pub fn new(mut objects: Vec<Box<dyn Hittable>>, time0: f32, time1: f32) -> Self {
         let axis = rand::thread_rng().gen_range(0, 2);
 
         let comparator = if axis == 0 {

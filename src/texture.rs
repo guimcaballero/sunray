@@ -2,7 +2,7 @@ use crate::{perlin::Perlin, vec3::*};
 use image as img;
 use std::sync::Arc;
 
-pub type Texture = Arc<dyn Fn(f64, f64, Vec3) -> Vec3 + Send + Sync>;
+pub type Texture = Arc<dyn Fn(f32, f32, Vec3) -> Vec3 + Send + Sync>;
 
 pub fn solid_color(color: Vec3) -> Texture {
     Arc::new(move |_, _, _| color)
@@ -22,14 +22,14 @@ pub fn checker(even: Texture, odd: Texture) -> Texture {
 
 // Perlin is a param, instead of being initialized inside the function so that we can reuse it when making different textures
 
-pub fn noise(perlin: Perlin, scale: f64) -> Texture {
+pub fn noise(perlin: Perlin, scale: f32) -> Texture {
     Arc::new(move |_, _, p| Color::ones() * 0.5 * (1.0 + perlin.noise(scale * p)))
 }
 #[allow(dead_code)]
-pub fn turbulent_noise(perlin: Perlin, scale: f64) -> Texture {
+pub fn turbulent_noise(perlin: Perlin, scale: f32) -> Texture {
     Arc::new(move |_, _, p| Color::ones() * perlin.turbulence(scale * p, 7))
 }
-pub fn marble(perlin: Perlin, scale: f64) -> Texture {
+pub fn marble(perlin: Perlin, scale: f32) -> Texture {
     Arc::new(move |_, _, p| {
         Color::ones()
             * 0.5
@@ -52,8 +52,8 @@ pub fn image(filename: &str) -> Texture {
         let u = u.clamp(0.0, 1.0);
         let v = 1.0 - v.clamp(0.0, 1.0);
 
-        let mut i = (u * width as f64) as usize;
-        let mut j = (v * height as f64) as usize;
+        let mut i = (u * width as f32) as usize;
+        let mut j = (v * height as f32) as usize;
 
         if i >= width {
             i = width - 1;
@@ -63,9 +63,9 @@ pub fn image(filename: &str) -> Texture {
         }
 
         let index = 3 * i + 3 * width * j;
-        let r = data[index] as f64 / 255.0;
-        let g = data[index + 1] as f64 / 255.0;
-        let b = data[index + 2] as f64 / 255.0;
+        let r = data[index] as f32 / 255.0;
+        let g = data[index + 1] as f32 / 255.0;
+        let b = data[index + 2] as f32 / 255.0;
         Color::new(r, g, b)
     })
 }

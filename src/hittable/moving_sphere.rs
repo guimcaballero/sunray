@@ -3,14 +3,14 @@ use crate::{hittable::*, material::*, vec3::*};
 pub struct MovingSphere {
     pub center0: Point,
     pub center1: Point,
-    pub time0: f64,
-    pub time1: f64,
-    pub radius: f64,
+    pub time0: f32,
+    pub time1: f32,
+    pub radius: f32,
     pub material: Material,
 }
 
 impl Hittable for MovingSphere {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let center = self.center(ray.time);
 
         let oc = ray.origin - center;
@@ -48,7 +48,7 @@ impl Hittable for MovingSphere {
         false
     }
 
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         let box0 = AABB {
             min: self.center(t0) - Vec3::new(self.radius, self.radius, self.radius),
             max: self.center(t0) + Vec3::new(self.radius, self.radius, self.radius),
@@ -63,7 +63,7 @@ impl Hittable for MovingSphere {
 }
 
 impl MovingSphere {
-    pub fn center(&self, time: f64) -> Point {
+    pub fn center(&self, time: f32) -> Point {
         self.center0
             + ((time - self.time0) / (self.time1 - self.time0)) * (self.center1 - self.center0)
     }

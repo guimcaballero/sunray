@@ -26,7 +26,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::FinalScene;
+const SCENE: Scene = Scene::CustomScene;
 
 fn main() {
     let start = Instant::now();
@@ -58,8 +58,8 @@ fn get_image_string() -> String {
     // Image
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 800;
-    let image_height = (image_width as f64 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 200;
+    let image_height = (image_width as f32 / aspect_ratio) as u16;
+    let samples_per_pixel: u16 = 1000;
     let max_depth: u16 = 50;
 
     // World
@@ -68,6 +68,11 @@ fn get_image_string() -> String {
         camera,
         background_color,
     } = scenes::generate_world(SCENE, aspect_ratio);
+
+    println!(
+        "Rendering {}x{} with {} samples",
+        image_width, image_height, samples_per_pixel
+    );
 
     let string = (0..image_height)
         .into_par_iter()
@@ -81,8 +86,8 @@ fn get_image_string() -> String {
 
                     let mut rng = rand::thread_rng();
                     for _s in 0..samples_per_pixel {
-                        let u = (i as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
-                        let v = (j as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
+                        let u = (i as f32 + rng.gen::<f32>()) / (image_width - 1) as f32;
+                        let v = (j as f32 + rng.gen::<f32>()) / (image_height - 1) as f32;
 
                         let ray = camera.ray(u, v);
                         pixel_color += ray_color(&ray, background_color, &hittables, max_depth);
@@ -106,7 +111,7 @@ fn ray_color(ray: &Ray, background_color: Color, hittables: &dyn Hittable, depth
     }
 
     let mut hit_record = HitRecord::default();
-    if !hittables.hit(&ray, 0.001, f64::INFINITY, &mut hit_record) {
+    if !hittables.hit(&ray, 0.001, f32::INFINITY, &mut hit_record) {
         return background_color;
     }
 

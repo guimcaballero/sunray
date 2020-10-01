@@ -1,15 +1,15 @@
 use crate::{hittable::*, material::*, vec3::*};
-use std::f64::consts::PI;
+use std::f32::consts::PI;
 
 #[derive(Clone)]
 pub struct Sphere {
     pub center: Point,
-    pub radius: f64,
+    pub radius: f32,
     pub material: Material,
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
         let half_b = oc.dot(&ray.direction);
@@ -52,7 +52,7 @@ impl Hittable for Sphere {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         Some(AABB {
             min: self.center - Vec3::new(self.radius, self.radius, self.radius),
             max: self.center + Vec3::new(self.radius, self.radius, self.radius),
@@ -60,7 +60,7 @@ impl Hittable for Sphere {
     }
 }
 
-fn get_sphere_uv(p: Vec3) -> (f64, f64) {
+fn get_sphere_uv(p: Vec3) -> (f32, f32) {
     let phi = p.z.atan2(p.x);
     let theta = p.y.asin();
 

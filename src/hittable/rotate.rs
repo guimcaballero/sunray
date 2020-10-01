@@ -2,13 +2,13 @@ use crate::{hittable::*, vec3::*};
 
 pub struct RotateY {
     pub hittable: Box<dyn Hittable>,
-    sin_theta: f64,
-    cos_theta: f64,
+    sin_theta: f32,
+    cos_theta: f32,
     aabb: Option<AABB>,
 }
 
 impl RotateY {
-    pub fn new(hittable: Box<dyn Hittable>, angle: f64) -> Self {
+    pub fn new(hittable: Box<dyn Hittable>, angle: f32) -> Self {
         let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
@@ -20,9 +20,9 @@ impl RotateY {
             for i in 0..2 {
                 for j in 0..2 {
                     for k in 0..2 {
-                        let x = i as f64 * aabb.max.x + (1 - i) as f64 * aabb.min.x;
-                        let y = j as f64 * aabb.max.y + (1 - j) as f64 * aabb.min.y;
-                        let z = k as f64 * aabb.max.z + (1 - k) as f64 * aabb.min.z;
+                        let x = i as f32 * aabb.max.x + (1 - i) as f32 * aabb.min.x;
+                        let y = j as f32 * aabb.max.y + (1 - j) as f32 * aabb.min.y;
+                        let z = k as f32 * aabb.max.z + (1 - k) as f32 * aabb.min.z;
 
                         let newx = cos_theta * x + sin_theta * z;
                         let newz = -sin_theta * x + cos_theta * z;
@@ -55,9 +55,9 @@ impl RotateY {
 }
 
 impl Hittable for RotateY {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         // Adapted from https://github.com/cbiffle/rtiow-rust/blob/master/src/object.rs#L349 because what I had before did weird stuff
-        fn rot(p: Vec3, sin_theta: f64, cos_theta: f64) -> Vec3 {
+        fn rot(p: Vec3, sin_theta: f32, cos_theta: f32) -> Vec3 {
             Vec3::new(
                 p.dot(&Vec3::new(cos_theta, 0., sin_theta)),
                 p.dot(&Vec3::new(0., 1., 0.)),
@@ -84,7 +84,7 @@ impl Hittable for RotateY {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         self.aabb
     }
 }

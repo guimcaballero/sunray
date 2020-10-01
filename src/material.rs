@@ -6,8 +6,8 @@ use rand::*;
 pub enum Material {
     Lambertian(Color),
     LambertianTexture(Texture),
-    Metal(Color, f64),
-    Dielectric(f64),
+    Metal(Color, f32),
+    Dielectric(f32),
     DiffuseLight(Color),
     DiffuseLightTexture(Texture),
     Isotropic(Color),
@@ -76,7 +76,7 @@ impl Material {
                     return true;
                 }
                 let reflect_prob = schlick(cos_theta, eta_over_etai);
-                if rand::thread_rng().gen::<f64>() < reflect_prob {
+                if rand::thread_rng().gen::<f32>() < reflect_prob {
                     let reflected = unit.reflect(&hit_record.normal);
                     *scattered = Ray {
                         origin: hit_record.point,
@@ -113,7 +113,7 @@ impl Material {
         }
     }
 
-    pub fn emitted(&self, u: f64, v: f64, point: Point) -> Color {
+    pub fn emitted(&self, u: f32, v: f32, point: Point) -> Color {
         match self {
             Self::DiffuseLight(emit) => *emit,
             Self::DiffuseLightTexture(emit) => emit(u, v, point),
@@ -122,7 +122,7 @@ impl Material {
     }
 }
 
-fn schlick(cosine: f64, ref_idx: f64) -> f64 {
+fn schlick(cosine: f32, ref_idx: f32) -> f32 {
     let mut r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
     r0 = r0 * r0;
     return r0 + (1.0 - r0) * (1.0 - cosine).powi(5);

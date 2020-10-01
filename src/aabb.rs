@@ -7,7 +7,7 @@ pub struct AABB {
 }
 
 impl AABB {
-    pub fn hit(&self, ray: &Ray, tmin: f64, tmax: f64) -> bool {
+    pub fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> bool {
         for a in 0..3 {
             let t0 = ((self.min[a] - ray.origin[a]) / ray.direction[a])
                 .min((self.max[a] - ray.origin[a]) / ray.direction[a]);

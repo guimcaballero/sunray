@@ -1,16 +1,16 @@
 use crate::{hittable::*, material::*, vec3::*};
 
 pub struct XYRect {
-    pub x0: f64,
-    pub x1: f64,
-    pub y0: f64,
-    pub y1: f64,
-    pub k: f64,
+    pub x0: f32,
+    pub x1: f32,
+    pub y0: f32,
+    pub y1: f32,
+    pub k: f32,
     pub material: Material,
 }
 
 impl Hittable for XYRect {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let t = (self.k - ray.origin.z) / ray.direction.z;
 
         if t < t_min || t > t_max {
@@ -35,7 +35,7 @@ impl Hittable for XYRect {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(self.x0, self.y0, self.k - 0.0001),
             max: Point::new(self.x1, self.y1, self.k + 0.0001),
@@ -44,16 +44,16 @@ impl Hittable for XYRect {
 }
 
 pub struct XZRect {
-    pub x0: f64,
-    pub x1: f64,
-    pub z0: f64,
-    pub z1: f64,
-    pub k: f64,
+    pub x0: f32,
+    pub x1: f32,
+    pub z0: f32,
+    pub z1: f32,
+    pub k: f32,
     pub material: Material,
 }
 
 impl Hittable for XZRect {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let t = (self.k - ray.origin.y) / ray.direction.y;
 
         if t < t_min || t > t_max {
@@ -78,7 +78,7 @@ impl Hittable for XZRect {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(self.x0, self.z0, self.k - 0.0001),
             max: Point::new(self.x1, self.z1, self.k + 0.0001),
@@ -87,16 +87,16 @@ impl Hittable for XZRect {
 }
 
 pub struct YZRect {
-    pub y0: f64,
-    pub y1: f64,
-    pub z0: f64,
-    pub z1: f64,
-    pub k: f64,
+    pub y0: f32,
+    pub y1: f32,
+    pub z0: f32,
+    pub z1: f32,
+    pub k: f32,
     pub material: Material,
 }
 
 impl Hittable for YZRect {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let t = (self.k - ray.origin.x) / ray.direction.x;
 
         if t < t_min || t > t_max {
@@ -121,7 +121,7 @@ impl Hittable for YZRect {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(self.y0, self.z0, self.k - 0.0001),
             max: Point::new(self.y1, self.z1, self.k + 0.0001),

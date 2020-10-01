@@ -12,7 +12,7 @@ impl Translate {
 }
 
 impl Hittable for Translate {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let moved = Ray {
             origin: ray.origin - self.offset,
             direction: ray.direction,
@@ -31,7 +31,7 @@ impl Hittable for Translate {
     }
 
     #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f64, t1: f64) -> Option<AABB> {
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         if let Some(output_box) = self.hittable.bounding_box(t0, t1) {
             Some(AABB {
                 min: output_box.min + self.offset,
