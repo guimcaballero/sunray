@@ -25,7 +25,7 @@ impl TracedSDF {
 impl Hittable for TracedSDF {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let mut t = t_min;
-        for _ in 0..200 {
+        for _ in 0..2000 {
             let point = ray.at(t);
             let distance = self.sdf.dist(point);
 
@@ -73,6 +73,7 @@ impl SDF for SDFSphere {
         (position - self.center).length() - self.radius
     }
 
+    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         Some(AABB {
             min: self.center - Point::from(self.radius),
@@ -91,11 +92,25 @@ impl SDF for SDFCilinder {
         Vec3::new(position.x - self.center.x, position.z - self.center.z, 0.).length() - self.radius
     }
 
+    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
-        Some(AABB {
-            min: self.center - Point::from(self.radius),
-            max: self.center + Point::from(self.radius),
-        })
+        None
+    }
+}
+
+pub struct SDFPlane {
+    pub normal: Vec3,
+    pub h: f32,
+}
+
+impl SDF for SDFPlane {
+    fn dist(&self, position: Vec3) -> f32 {
+        position.dot(&self.normal) + self.h
+    }
+
+    #[allow(unused_variables)]
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        None
     }
 }
 
@@ -114,6 +129,7 @@ impl SDF for SDFDonut {
         Vec3::new(qx, qy, 0.0).length() - self.radius1
     }
 
+    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(
@@ -141,10 +157,31 @@ impl SDF for SDFCube {
         q.max(0.0).length() + q.x.max(q.y.max(q.z)).min(0.0)
     }
 
+    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         Some(AABB {
             min: self.center - self.dimensions / 2.,
             max: self.center + self.dimensions / 2.,
+        })
+    }
+}
+
+pub struct SDFOctahedron {
+    pub size: f32,
+    pub center: Point,
+}
+
+impl SDF for SDFOctahedron {
+    fn dist(&self, position: Vec3) -> f32 {
+        let p = (position - self.center).abs();
+        (p.x + p.y + p.z - self.size) * 0.57735027
+    }
+
+    #[allow(unused_variables)]
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        Some(AABB {
+            min: self.center - Vec3::from(self.size),
+            max: self.center + Vec3::from(self.size),
         })
     }
 }
@@ -213,11 +250,11 @@ pub struct SDFRepetition {
 
 impl SDF for SDFRepetition {
     fn dist(&self, position: Vec3) -> f32 {
-        // let q = (position + 0.5 * self.repetition).modulo(self.repetition) - 0.5 * self.repetition;
-        let q = (position + 0.5 * self.repetition).modulo(self.repetition);
+        let q = (position).modulo(self.repetition) - 0.5 * self.repetition;
         self.a.dist(q)
     }
 
+    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         None
     }
@@ -240,6 +277,22 @@ pub fn cross(center: Point, dimension: f32) -> Box<dyn SDF> {
     };
 
     Box::new(SDFUnion {
+        a: Box::new(a),
+        b: Box::new(b),
+    })
+}
+
+pub fn finite_plane(center: Point, dimension: f32) -> Box<dyn SDF> {
+    let a = SDFPlane {
+        normal: Vec3::new(0., 1., 0.),
+        h: 0.,
+    };
+    let b = SDFCube {
+        center,
+        dimensions: Vec3::from(dimension),
+    };
+
+    Box::new(SDFIntersection {
         a: Box::new(a),
         b: Box::new(b),
     })
