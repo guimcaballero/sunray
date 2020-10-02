@@ -5,6 +5,7 @@ pub mod medium;
 pub mod moving_sphere;
 pub mod rectangle;
 pub mod rotate;
+pub mod sdf;
 pub mod sphere;
 pub mod translate;
 

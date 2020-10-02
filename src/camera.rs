@@ -59,9 +59,10 @@ impl Camera {
         let offset = self.u * rd.x + self.v * rd.y;
         Ray {
             origin: self.origin + offset,
-            direction: self.lower_left_corner + s * self.horizontal + t * self.vertical
+            direction: (self.lower_left_corner + s * self.horizontal + t * self.vertical
                 - self.origin
-                - offset,
+                - offset)
+                .normalize(),
             time: rand::thread_rng().gen_range(self.time0, self.time1),
         }
     }

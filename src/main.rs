@@ -26,7 +26,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::FinalScene;
+const SCENE: Scene = Scene::SpaceDonut;
 
 fn main() {
     let start = Instant::now();
@@ -59,7 +59,11 @@ fn get_image_string() -> String {
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 800;
     let image_height = (image_width as f32 / aspect_ratio) as u16;
+<<<<<<< HEAD
     let samples_per_pixel: u16 = 10000;
+=======
+    let samples_per_pixel: u16 = 50;
+>>>>>>> b042f215cf4bd6addbf0eb5e76ee4c5ecd1358c3
     let max_depth: u16 = 50;
 
     // World
@@ -112,7 +116,10 @@ fn ray_color(ray: &Ray, background_color: Color, hittables: &dyn Hittable, depth
 
     let mut hit_record = HitRecord::default();
     if !hittables.hit(&ray, 0.001, f32::INFINITY, &mut hit_record) {
-        return background_color;
+        let t = 0.5 * (ray.direction.normalize().y + 1.0);
+        return (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0);
+
+        // return background_color;
     }
 
     let mut scattered = Ray::default();
