@@ -59,11 +59,7 @@ fn get_image_string() -> String {
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 800;
     let image_height = (image_width as f32 / aspect_ratio) as u16;
-<<<<<<< HEAD
-    let samples_per_pixel: u16 = 10000;
-=======
     let samples_per_pixel: u16 = 50;
->>>>>>> b042f215cf4bd6addbf0eb5e76ee4c5ecd1358c3
     let max_depth: u16 = 50;
 
     // World
