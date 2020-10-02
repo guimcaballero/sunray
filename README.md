@@ -9,3 +9,11 @@ cargo run --release
 ```
 
 and wait for the pretty picture to generate!
+
+## Renders
+
+Here are some renders: 
+
+![Final book](hqrenders/finalrender_10kspp.png)
+
+![Space donut](hqrenders/spacedonut_10kspp.png)
