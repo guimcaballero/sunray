@@ -4,6 +4,7 @@ use rand::*;
 #[derive(Clone)]
 #[allow(dead_code)]
 pub enum Material {
+    Normal,
     Lambertian(Color),
     LambertianTexture(Texture),
     Metal(Color, f32),
@@ -22,6 +23,9 @@ impl Material {
         scattered: &mut Ray,
     ) -> bool {
         match self {
+            Self::Normal => {
+                return false;
+            }
             Self::Lambertian(albedo) => {
                 let scatter_direction = hit_record.normal + Vec3::random_unit_vector();
                 let ray = Ray {
@@ -113,8 +117,9 @@ impl Material {
         }
     }
 
-    pub fn emitted(&self, u: f32, v: f32, point: Point) -> Color {
+    pub fn emitted(&self, u: f32, v: f32, point: Point, hit_record: &HitRecord) -> Color {
         match self {
+            Self::Normal => hit_record.normal,
             Self::DiffuseLight(emit) => *emit,
             Self::DiffuseLightTexture(emit) => emit(u, v, point),
             _ => Color::zeros(),

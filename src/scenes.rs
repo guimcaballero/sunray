@@ -24,6 +24,7 @@ pub enum Scene {
     FinalScene,
     CustomScene,
     SpaceDonut,
+    Imagine,
     MengerSponge,
 }
 
@@ -45,6 +46,7 @@ pub fn generate_world(scene: Scene, aspect_ratio: f32) -> World {
         Scene::CustomScene => custom_scene(aspect_ratio),
         Scene::SpaceDonut => space_dount(aspect_ratio),
         Scene::MengerSponge => menger_sponge(aspect_ratio),
+        Scene::Imagine => imagine(aspect_ratio),
     }
 }
 
@@ -717,7 +719,6 @@ fn space_dount(aspect_ratio: f32) -> World {
 
     // Stars
     let mut stars: Vec<Box<dyn Hittable>> = Vec::new();
-    // Floor
     for i in 0..200 {
         let rad = (i as f32 / 90.) * std::f32::consts::TAU;
 
@@ -783,32 +784,169 @@ fn space_dount(aspect_ratio: f32) -> World {
     }
 }
 
+fn imagine(aspect_ratio: f32) -> World {
+    let mut hittables = HittableList::new();
+    let mut rng = rand::thread_rng();
+
+    // Cilinder lights
+    hittables.add(Box::new(TracedSDF {
+        sdf: Box::new(SDFCilinder {
+            center: Point::new(100., 0., -30.),
+            radius: 10.,
+        }),
+        material: Material::DiffuseLight(Color::new(239. / 255., 162. / 255., 13. / 255.) * 1.),
+    }));
+    hittables.add(Box::new(TracedSDF {
+        sdf: Box::new(SDFCilinder {
+            center: Point::new(100., 0., 0.),
+            radius: 10.,
+        }),
+        material: Material::DiffuseLight(Color::new(64. / 255., 231. / 255., 184. / 255.) * 1.),
+    }));
+    hittables.add(Box::new(TracedSDF {
+        sdf: Box::new(SDFCilinder {
+            center: Point::new(100., 0., 30.),
+            radius: 10.,
+        }),
+        material: Material::DiffuseLight(Color::new(142. / 255., 226. / 255., 224. / 255.) * 1.),
+    }));
+
+    // Cilinder gasses
+    hittables.add(Box::new(ConstantMedium::new(
+        Box::new(TracedSDF {
+            sdf: Box::new(SDFCilinder {
+                center: Point::new(100., 0., -30.),
+                radius: 15.,
+            }),
+            material: Material::Dielectric(1.5),
+        }),
+        0.0001,
+        Color::ones(),
+    )));
+    hittables.add(Box::new(ConstantMedium::new(
+        Box::new(TracedSDF {
+            sdf: Box::new(SDFCilinder {
+                center: Point::new(100., 0., 0.),
+                radius: 15.,
+            }),
+            material: Material::Dielectric(1.5),
+        }),
+        0.0001,
+        Color::ones(),
+    )));
+    hittables.add(Box::new(ConstantMedium::new(
+        Box::new(TracedSDF {
+            sdf: Box::new(SDFCilinder {
+                center: Point::new(100., 0., 30.),
+                radius: 15.,
+            }),
+            material: Material::Dielectric(1.5),
+        }),
+        0.0001,
+        Color::ones(),
+    )));
+
+    // Floor
+    hittables.add(Box::new(TracedSDF {
+        sdf: sdf::finite_plane(Point::new(0., 0., 0.), 400.),
+        // material: Material::Metal(Color::new(0.95, 0.95, 0.95), 0.01),
+        material: Material::Lambertian(Color::new(0.1, 0.1, 0.3)),
+    }));
+
+    // Pyramids
+    let mut pyramids: Vec<Box<dyn Hittable>> = Vec::new();
+    for _ in 0..20 {
+        let x = rng.gen_range(50., 80.);
+        let y = rng.gen_range(-10., 0.);
+        let z = rng.gen_range(-200., 200.);
+        let size = rng.gen_range(10., 40.);
+        pyramids.push(Box::new(RotateY::new(
+            Box::new(TracedSDF {
+                sdf: Box::new(SDFOctahedron {
+                    center: Point::new(x, y, z),
+                    size,
+                }),
+                material: Material::Metal(Color::new(0.95, 0.95, 0.95), 0.1),
+            }),
+            rng.gen_range(-60., 60.),
+        )));
+    }
+    let bvh = BVHNode::new(pyramids, 0.0, 1.0);
+    hittables.add(Box::new(bvh));
+
+    // Stars
+    let mut stars: Vec<Box<dyn Hittable>> = Vec::new();
+    for i in 0..200 {
+        let rad = (i as f32 / 90.) * std::f32::consts::TAU;
+
+        let x = rad.cos() * 800.;
+        let y = 400. + rng.gen_range(-400., 400.);
+        let z = rad.sin() * 800.;
+        stars.push(Box::new(Sphere {
+            center: Point::new(x, y, z),
+            radius: 0.5,
+            material: Material::DiffuseLight(Color::ones() * 10.),
+        }));
+    }
+    let bvh = BVHNode::new(stars, 0.0, 1.0);
+    hittables.add(Box::new(bvh));
+
+    // Camera
+    let lookfrom = Point::new(-300.0, 70.0, 0.0);
+    let lookat = Point::new(200., -10., 0.);
+    let dist_to_focus = 100.; //(lookfrom - lookat).length();
+    let vfov = 20.0;
+    let aperture = 0.1;
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        vfov,
+        aspect_ratio,
+        aperture,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
+
+    World {
+        hittables,
+        camera,
+        background_color: Color::zeros(),
+    }
+}
+
 fn menger_sponge(aspect_ratio: f32) -> World {
     let mut hittables = HittableList::new();
+    let mut rng = rand::thread_rng();
 
     let boxes = {
-        let a = Box::new(SDFSphere {
+        let a = Box::new(SDFCube {
             center: Point::zeros(),
-            radius: 0.5,
+            dimensions: Vec3::from(30.),
         });
-        let b = sdf::cross(Point::zeros(), 1. / 3.);
+
+        let mut b = sdf::cross(Point::zeros(), 1. / 3.);
+        for i in 0..10 {
+            b = Box::new(SDFUnion {
+                a: Box::new(SDFRepetition {
+                    a: sdf::cross(Point::from(rng.gen_range(0., 8.)), 1. / 3. * i as f32),
+                    repetition: Vec3::from(3. * i as f32),
+                }),
+                b,
+            });
+        }
+
         TracedSDF {
-            sdf: Box::new(SDFRepetition {
-                a,
-                repetition: Vec3::from(10.),
-            }),
-            material: Material::Lambertian(Color::from(0.7)),
+            sdf: Box::new(SDFSubstraction { a, b }),
+            material: Material::Lambertian(Color::new(0.8, 0.1, 0.1)),
         }
     };
     hittables.add(Box::new(boxes));
-    hittables.add(Box::new(Sphere {
-        center: Point::from(1.),
-        radius: 3.,
-        material: Material::DiffuseLight(Color::from(10.)),
-    }));
 
     // Camera
-    let lookfrom = Point::new(-5.0, 2.0, 13.0) * 0.7;
+    let lookfrom = Point::new(-5.0, 2.0, -13.0) * 10.;
     let lookat = Point::new(0.0, 0.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
     let vfov = 40.0;

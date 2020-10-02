@@ -26,7 +26,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::SpaceDonut;
+const SCENE: Scene = Scene::MengerSponge;
 
 fn main() {
     let start = Instant::now();
@@ -59,7 +59,7 @@ fn get_image_string() -> String {
     let aspect_ratio = 3.0 / 2.0;
     let image_width = 800;
     let image_height = (image_width as f32 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 50;
+    let samples_per_pixel: u16 = 300;
     let max_depth: u16 = 50;
 
     // World
@@ -107,22 +107,24 @@ fn get_image_string() -> String {
 fn ray_color(ray: &Ray, background_color: Color, hittables: &dyn Hittable, depth: u16) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
-        return Color::new(0.0, 0.0, 0.0);
+        return Color::zeros();
     }
 
     let mut hit_record = HitRecord::default();
     if !hittables.hit(&ray, 0.001, f32::INFINITY, &mut hit_record) {
         let t = 0.5 * (ray.direction.normalize().y + 1.0);
-        return (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0);
+        // return (1.0 - t) * Color::new(0.05, 0.05, 0.2) + t * Color::zeros();
+        return (1.0 - t) * Color::new(0.3, 0.5, 1.0) + t * Color::ones();
 
         // return background_color;
     }
 
     let mut scattered = Ray::default();
     let mut attenuation = Color::new(0.0, 0.0, 0.0);
-    let emitted = hit_record
-        .material
-        .emitted(hit_record.u, hit_record.v, hit_record.point);
+    let emitted =
+        hit_record
+            .material
+            .emitted(hit_record.u, hit_record.v, hit_record.point, &hit_record);
 
     if !hit_record
         .material

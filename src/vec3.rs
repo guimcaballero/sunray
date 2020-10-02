@@ -72,10 +72,14 @@ impl Vec3 {
     }
     #[inline(always)]
     pub fn modulo(&self, other: Vec3) -> Self {
+        fn modulo(a: f32, b: f32) -> f32 {
+            a - (b * (a / b).floor())
+        }
+
         Self {
-            x: self.x % other.x,
-            y: self.y % other.y,
-            z: self.z % other.z,
+            x: modulo(self.x, other.x),
+            y: modulo(self.y, other.y),
+            z: modulo(self.z, other.z),
         }
     }
 
