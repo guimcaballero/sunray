@@ -16,4 +16,4 @@ Here are some renders:
 
 ![Final book](hqrenders/finalrender_10kspp.png)
 
-![Space donut](hqrenders/spacedonut_10kspp.png)
+![Space donut](hqrenders/spacedonut_10k.png)
