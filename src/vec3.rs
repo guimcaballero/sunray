@@ -70,6 +70,14 @@ impl Vec3 {
             z: self.z.min(val),
         }
     }
+    #[inline(always)]
+    pub fn modulo(&self, other: Vec3) -> Self {
+        Self {
+            x: self.x % other.x,
+            y: self.y % other.y,
+            z: self.z % other.z,
+        }
+    }
 
     #[inline(always)]
     pub fn multiply_components(&self) -> f32 {

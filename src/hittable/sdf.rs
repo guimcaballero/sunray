@@ -129,3 +129,118 @@ impl SDF for SDFDonut {
         })
     }
 }
+
+pub struct SDFCube {
+    pub dimensions: Vec3,
+    pub center: Point,
+}
+
+impl SDF for SDFCube {
+    fn dist(&self, position: Vec3) -> f32 {
+        let q = (position - self.center).abs() - self.dimensions;
+        q.max(0.0).length() + q.x.max(q.y.max(q.z)).min(0.0)
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        Some(AABB {
+            min: self.center - self.dimensions / 2.,
+            max: self.center + self.dimensions / 2.,
+        })
+    }
+}
+
+pub struct SDFUnion {
+    pub a: Box<dyn SDF>,
+    pub b: Box<dyn SDF>,
+}
+
+impl SDF for SDFUnion {
+    fn dist(&self, position: Vec3) -> f32 {
+        self.a.dist(position).min(self.b.dist(position))
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        if let Some(box_a) = self.a.bounding_box(t0, t1) {
+            if let Some(box_b) = self.b.bounding_box(t0, t1) {
+                return Some(box_a.surrounding_box(box_b));
+            }
+        }
+        None
+    }
+}
+
+pub struct SDFSubstraction {
+    pub a: Box<dyn SDF>,
+    pub b: Box<dyn SDF>,
+}
+
+impl SDF for SDFSubstraction {
+    fn dist(&self, position: Vec3) -> f32 {
+        self.a.dist(position).max(-self.b.dist(position))
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        self.a.bounding_box(t0, t1)
+    }
+}
+
+pub struct SDFIntersection {
+    pub a: Box<dyn SDF>,
+    pub b: Box<dyn SDF>,
+}
+
+impl SDF for SDFIntersection {
+    fn dist(&self, position: Vec3) -> f32 {
+        self.a.dist(position).max(self.b.dist(position))
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        // We just have to return any of the two boxes, as the intersection is inside
+        if let Some(box_a) = self.a.bounding_box(t0, t1) {
+            return Some(box_a);
+        }
+        if let Some(box_b) = self.b.bounding_box(t0, t1) {
+            return Some(box_b);
+        }
+        None
+    }
+}
+
+pub struct SDFRepetition {
+    pub a: Box<dyn SDF>,
+    pub repetition: Vec3,
+}
+
+impl SDF for SDFRepetition {
+    fn dist(&self, position: Vec3) -> f32 {
+        // let q = (position + 0.5 * self.repetition).modulo(self.repetition) - 0.5 * self.repetition;
+        let q = (position + 0.5 * self.repetition).modulo(self.repetition);
+        self.a.dist(q)
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        None
+    }
+}
+
+pub fn cross(center: Point, dimension: f32) -> Box<dyn SDF> {
+    let a = SDFUnion {
+        a: Box::new(SDFCube {
+            center,
+            dimensions: Vec3::new(f32::INFINITY, 1., 1.) * dimension,
+        }),
+        b: Box::new(SDFCube {
+            center,
+            dimensions: Vec3::new(1., f32::INFINITY, 1.) * dimension,
+        }),
+    };
+    let b = SDFCube {
+        center,
+        dimensions: Vec3::new(1., 1., f32::INFINITY) * dimension,
+    };
+
+    Box::new(SDFUnion {
+        a: Box::new(a),
+        b: Box::new(b),
+    })
+}

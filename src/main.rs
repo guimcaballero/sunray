@@ -26,7 +26,7 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::SpaceDonut;
+const SCENE: Scene = Scene::MengerSponge;
 
 fn main() {
     let start = Instant::now();
@@ -112,7 +112,10 @@ fn ray_color(ray: &Ray, background_color: Color, hittables: &dyn Hittable, depth
 
     let mut hit_record = HitRecord::default();
     if !hittables.hit(&ray, 0.001, f32::INFINITY, &mut hit_record) {
-        return background_color;
+        let t = 0.5 * (ray.direction.normalize().y + 1.0);
+        return (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0);
+
+        // return background_color;
     }
 
     let mut scattered = Ray::default();

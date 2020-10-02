@@ -24,6 +24,7 @@ pub enum Scene {
     FinalScene,
     CustomScene,
     SpaceDonut,
+    MengerSponge,
 }
 
 pub struct World {
@@ -43,6 +44,7 @@ pub fn generate_world(scene: Scene, aspect_ratio: f32) -> World {
         Scene::FinalScene => final_scene(aspect_ratio),
         Scene::CustomScene => custom_scene(aspect_ratio),
         Scene::SpaceDonut => space_dount(aspect_ratio),
+        Scene::MengerSponge => menger_sponge(aspect_ratio),
     }
 }
 
@@ -758,6 +760,56 @@ fn space_dount(aspect_ratio: f32) -> World {
     // Camera
     let lookfrom = Point::new(478.0, 278.0, -600.0);
     let lookat = Point::new(278.0, 278.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+    let vfov = 40.0;
+    let aperture = 0.0;
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        vfov,
+        aspect_ratio,
+        aperture,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
+
+    World {
+        hittables,
+        camera,
+        background_color: Color::zeros(),
+    }
+}
+
+fn menger_sponge(aspect_ratio: f32) -> World {
+    let mut hittables = HittableList::new();
+
+    let boxes = {
+        let a = Box::new(SDFSphere {
+            center: Point::zeros(),
+            radius: 0.5,
+        });
+        let b = sdf::cross(Point::zeros(), 1. / 3.);
+        TracedSDF {
+            sdf: Box::new(SDFRepetition {
+                a,
+                repetition: Vec3::from(10.),
+            }),
+            material: Material::Lambertian(Color::from(0.7)),
+        }
+    };
+    hittables.add(Box::new(boxes));
+    hittables.add(Box::new(Sphere {
+        center: Point::from(1.),
+        radius: 3.,
+        material: Material::DiffuseLight(Color::from(10.)),
+    }));
+
+    // Camera
+    let lookfrom = Point::new(-5.0, 2.0, 13.0) * 0.7;
+    let lookat = Point::new(0.0, 0.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
     let vfov = 40.0;
     let aperture = 0.0;
