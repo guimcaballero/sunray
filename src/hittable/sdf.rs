@@ -250,7 +250,7 @@ pub struct SDFRepetition {
 
 impl SDF for SDFRepetition {
     fn dist(&self, position: Vec3) -> f32 {
-        let q = (position).modulo(self.repetition) - 0.5 * self.repetition;
+        let q = (position + 0.5 * self.repetition).modulo(self.repetition) - 0.5 * self.repetition;
         self.a.dist(q)
     }
 

@@ -26,8 +26,6 @@ mod scenes;
 mod texture;
 use scenes::*;
 
-const SCENE: Scene = Scene::MengerSponge;
-
 fn main() {
     let start = Instant::now();
 
@@ -55,19 +53,19 @@ fn main() {
 }
 
 fn get_image_string() -> String {
-    // Image
-    let aspect_ratio = 3.0 / 2.0;
-    let image_width = 800;
-    let image_height = (image_width as f32 / aspect_ratio) as u16;
-    let samples_per_pixel: u16 = 300;
-    let max_depth: u16 = 50;
-
     // World
     let World {
         hittables,
         camera,
-        background_color,
-    } = scenes::generate_world(SCENE, aspect_ratio);
+        background_color_top,
+        background_color_bottom,
+        samples_per_pixel,
+        image_width,
+        aspect_ratio,
+        max_depth,
+    } = scenes::generate_world();
+
+    let image_height = (image_width as f32 / aspect_ratio) as u16;
 
     println!(
         "Rendering {}x{} with {} samples",
@@ -90,7 +88,13 @@ fn get_image_string() -> String {
                         let v = (j as f32 + rng.gen::<f32>()) / (image_height - 1) as f32;
 
                         let ray = camera.ray(u, v);
-                        pixel_color += ray_color(&ray, background_color, &hittables, max_depth);
+                        pixel_color += ray_color(
+                            &ray,
+                            background_color_top,
+                            background_color_bottom,
+                            &hittables,
+                            max_depth,
+                        );
                     }
 
                     pixel_color.write_color(samples_per_pixel)
@@ -104,7 +108,13 @@ fn get_image_string() -> String {
     format!("P3\n{} {}\n255\n{}", image_width, image_height, string)
 }
 
-fn ray_color(ray: &Ray, background_color: Color, hittables: &dyn Hittable, depth: u16) -> Color {
+fn ray_color(
+    ray: &Ray,
+    background_color_top: Color,
+    background_color_bottom: Color,
+    hittables: &dyn Hittable,
+    depth: u16,
+) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if depth <= 0 {
         return Color::zeros();
@@ -114,9 +124,7 @@ fn ray_color(ray: &Ray, background_color: Color, hittables: &dyn Hittable, depth
     if !hittables.hit(&ray, 0.001, f32::INFINITY, &mut hit_record) {
         let t = 0.5 * (ray.direction.normalize().y + 1.0);
         // return (1.0 - t) * Color::new(0.05, 0.05, 0.2) + t * Color::zeros();
-        return (1.0 - t) * Color::new(0.3, 0.5, 1.0) + t * Color::ones();
-
-        // return background_color;
+        return (1.0 - t) * background_color_bottom + t * background_color_top;
     }
 
     let mut scattered = Ray::default();
@@ -133,5 +141,13 @@ fn ray_color(ray: &Ray, background_color: Color, hittables: &dyn Hittable, depth
         return emitted;
     }
 
-    emitted + attenuation * ray_color(&scattered, background_color, hittables, depth - 1)
+    let color = ray_color(
+        &scattered,
+        background_color_top,
+        background_color_bottom,
+        hittables,
+        depth - 1,
+    );
+
+    emitted + attenuation * color
 }

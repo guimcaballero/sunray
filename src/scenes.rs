@@ -2,8 +2,8 @@ use crate::{
     bvh::*,
     camera::*,
     hittable::{
-        cube::*, medium::*, moving_sphere::*, rectangle::*, rotate::*, sdf::*, sphere::*,
-        translate::*, *,
+        cube::*, cylinder::*, medium::*, moving_sphere::*, pyramid::*, rectangle::*, rotate::*,
+        sdf::*, sphere::*, translate::*, triangle::*, *,
     },
     hittable_list::*,
     material::*,
@@ -13,8 +13,11 @@ use crate::{
 };
 use rand::Rng;
 
+const SCENE: Scene = Scene::Imagine;
+
 #[allow(dead_code)]
 pub enum Scene {
+    Test,
     ManySpheres,
     TwoPerlinSpheres,
     Earth,
@@ -31,26 +34,108 @@ pub enum Scene {
 pub struct World {
     pub hittables: HittableList,
     pub camera: Camera,
-    pub background_color: Color,
+
+    pub background_color_top: Color,
+    pub background_color_bottom: Color,
+
+    // Image
+    pub samples_per_pixel: u16,
+    pub aspect_ratio: f32,
+    pub image_width: u16,
+    pub max_depth: u16,
 }
 
-pub fn generate_world(scene: Scene, aspect_ratio: f32) -> World {
-    match scene {
-        Scene::ManySpheres => many_spheres(aspect_ratio),
-        Scene::TwoPerlinSpheres => two_perlin_spheres(aspect_ratio),
-        Scene::Earth => earth(aspect_ratio),
-        Scene::LightRectangle => light_rectangle(aspect_ratio),
-        Scene::CornellBox => cornell_box(aspect_ratio),
-        Scene::CornellSmokes => cornell_smokes(aspect_ratio),
-        Scene::FinalScene => final_scene(aspect_ratio),
-        Scene::CustomScene => custom_scene(aspect_ratio),
-        Scene::SpaceDonut => space_dount(aspect_ratio),
-        Scene::MengerSponge => menger_sponge(aspect_ratio),
-        Scene::Imagine => imagine(aspect_ratio),
+impl Default for World {
+    fn default() -> Self {
+        let aspect_ratio = 3.0 / 2.0;
+
+        let camera = Camera::new(
+            Point::new(13., 2., 3.),
+            Point::zeros(),
+            Vec3::new(0.0, 1.0, 0.0),
+            20.,
+            aspect_ratio,
+            0.,
+            10.,
+            0.0,
+            1.0,
+        );
+
+        Self {
+            hittables: HittableList::new(),
+            camera,
+
+            background_color_top: Color::zeros(),
+            background_color_bottom: Color::zeros(),
+
+            samples_per_pixel: 100,
+            aspect_ratio,
+            image_width: 800,
+            max_depth: 50,
+        }
     }
 }
 
-fn many_spheres(aspect_ratio: f32) -> World {
+pub fn generate_world() -> World {
+    match SCENE {
+        Scene::Test => test(),
+        Scene::ManySpheres => many_spheres(),
+        Scene::TwoPerlinSpheres => two_perlin_spheres(),
+        Scene::Earth => earth(),
+        Scene::LightRectangle => light_rectangle(),
+        Scene::CornellBox => cornell_box(),
+        Scene::CornellSmokes => cornell_smokes(),
+        Scene::FinalScene => final_scene(),
+        Scene::CustomScene => custom_scene(),
+        Scene::SpaceDonut => space_dount(),
+        Scene::MengerSponge => menger_sponge(),
+        Scene::Imagine => imagine(),
+    }
+}
+
+fn test() -> World {
+    let mut hittables = HittableList::new();
+
+    let top = Point::new(0.0, 1.0, 0.0);
+    let size = 1.0;
+    hittables.add(Box::new(Pyramid::new(
+        top,
+        Point::new(top.x - size, 0., top.x + size),
+        Point::new(top.x + size, 0., top.x + size),
+        Point::new(top.x + size, 0., top.x - size),
+        Point::new(top.x - size, 0., top.x - size),
+        Material::Lambertian(Color::new(0.8, 0.2, 0.2)),
+    )));
+    hittables.add(Box::new(Sphere {
+        center: Point::new(0., 4., 3.),
+        radius: 1.,
+        material: Material::DiffuseLight(Color::from(2.)),
+    }));
+
+    let aspect_ratio = 3. / 2.;
+    let camera = Camera::new(
+        Point::new(-10., 2., 4.),
+        Point::zeros(),
+        Vec3::new(0.0, 1.0, 0.0),
+        40.,
+        aspect_ratio,
+        0.,
+        10.,
+        0.0,
+        1.0,
+    );
+
+    World {
+        hittables,
+        samples_per_pixel: 50,
+        max_depth: 50,
+        camera,
+        aspect_ratio,
+        ..World::default()
+    }
+}
+
+fn many_spheres() -> World {
     let mut hittables = HittableList::new();
 
     // Ground
@@ -138,12 +223,13 @@ fn many_spheres(aspect_ratio: f32) -> World {
 
     World {
         hittables,
-        camera: default_camera(aspect_ratio),
-        background_color: Color::new(0.7, 0.8, 1.0),
+        background_color_top: Color::new(0.7, 0.8, 1.0),
+        background_color_bottom: Color::new(0.7, 0.8, 1.0),
+        ..World::default()
     }
 }
 
-fn two_perlin_spheres(aspect_ratio: f32) -> World {
+fn two_perlin_spheres() -> World {
     let mut hittables = HittableList::new();
 
     let texture = texture::marble(Perlin::new(), 4.0);
@@ -160,12 +246,13 @@ fn two_perlin_spheres(aspect_ratio: f32) -> World {
 
     World {
         hittables,
-        camera: default_camera(aspect_ratio),
-        background_color: Color::new(0.7, 0.8, 1.0),
+        background_color_top: Color::new(0.7, 0.8, 1.0),
+        background_color_bottom: Color::new(0.7, 0.8, 1.0),
+        ..World::default()
     }
 }
 
-fn earth(aspect_ratio: f32) -> World {
+fn earth() -> World {
     let mut hittables = HittableList::new();
 
     let texture = texture::image("earthmap.jpg");
@@ -177,12 +264,13 @@ fn earth(aspect_ratio: f32) -> World {
 
     World {
         hittables,
-        camera: default_camera(aspect_ratio),
-        background_color: Color::new(0.7, 0.8, 1.0),
+        background_color_top: Color::new(0.7, 0.8, 1.0),
+        background_color_bottom: Color::new(0.7, 0.8, 1.0),
+        ..World::default()
     }
 }
 
-fn light_rectangle(aspect_ratio: f32) -> World {
+fn light_rectangle() -> World {
     let mut hittables = HittableList::new();
 
     // Two marble spheres
@@ -212,20 +300,14 @@ fn light_rectangle(aspect_ratio: f32) -> World {
         material: Material::DiffuseLight(Color::new(4.0, 4.0, 4.0)),
     }));
 
-    let lookfrom = Point::new(26.0, 3.0, 6.0);
-    let lookat = Point::new(0.0, 2.0, 0.0);
-    let dist_to_focus = 10.0;
-    let vfov = 20.0;
-    let aperture = 0.0;
-
     let camera = Camera::new(
-        lookfrom,
-        lookat,
+        Point::new(26.0, 3.0, 6.0),
+        Point::new(0.0, 2.0, 0.0),
         Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
-        dist_to_focus,
+        20.,
+        3. / 2.,
+        0.,
+        10.,
         0.0,
         1.0,
     );
@@ -233,11 +315,11 @@ fn light_rectangle(aspect_ratio: f32) -> World {
     World {
         hittables,
         camera,
-        background_color: Color::zeros(),
+        ..World::default()
     }
 }
 
-fn cornell_box(aspect_ratio: f32) -> World {
+fn cornell_box() -> World {
     let mut hittables = HittableList::new();
 
     // Walls
@@ -316,16 +398,14 @@ fn cornell_box(aspect_ratio: f32) -> World {
     let lookfrom = Point::new(278.0, 278.0, -800.0);
     let lookat = Point::new(278.0, 278.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
-    let vfov = 40.0;
-    let aperture = 0.0;
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
+        40.,
+        3. / 2.,
+        0.,
         dist_to_focus,
         0.0,
         1.0,
@@ -334,11 +414,11 @@ fn cornell_box(aspect_ratio: f32) -> World {
     World {
         hittables,
         camera,
-        background_color: Color::zeros(),
+        ..World::default()
     }
 }
 
-fn cornell_smokes(aspect_ratio: f32) -> World {
+fn cornell_smokes() -> World {
     let mut hittables = HittableList::new();
 
     // Walls
@@ -419,16 +499,14 @@ fn cornell_smokes(aspect_ratio: f32) -> World {
     let lookfrom = Point::new(278.0, 278.0, -800.0);
     let lookat = Point::new(278.0, 278.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
-    let vfov = 40.0;
-    let aperture = 0.0;
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
+        40.,
+        3. / 2.,
+        0.,
         dist_to_focus,
         0.0,
         1.0,
@@ -437,11 +515,11 @@ fn cornell_smokes(aspect_ratio: f32) -> World {
     World {
         hittables,
         camera,
-        background_color: Color::zeros(),
+        ..World::default()
     }
 }
 
-fn final_scene(aspect_ratio: f32) -> World {
+fn final_scene() -> World {
     let mut boxes: Vec<Box<dyn Hittable>> = Vec::new();
 
     // Floor
@@ -555,16 +633,14 @@ fn final_scene(aspect_ratio: f32) -> World {
     let lookfrom = Point::new(478.0, 278.0, -600.0);
     let lookat = Point::new(278.0, 278.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
-    let vfov = 40.0;
-    let aperture = 0.0;
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
+        40.,
+        3. / 2.,
+        0.,
         dist_to_focus,
         0.0,
         1.0,
@@ -573,11 +649,11 @@ fn final_scene(aspect_ratio: f32) -> World {
     World {
         hittables,
         camera,
-        background_color: Color::zeros(),
+        ..World::default()
     }
 }
 
-fn custom_scene(aspect_ratio: f32) -> World {
+fn custom_scene() -> World {
     let mut boxes: Vec<Box<dyn Hittable>> = Vec::new();
 
     let mut rng = rand::thread_rng();
@@ -666,16 +742,14 @@ fn custom_scene(aspect_ratio: f32) -> World {
     let lookfrom = Point::new(478.0, 278.0, -600.0);
     let lookat = Point::new(278.0, 278.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
-    let vfov = 40.0;
-    let aperture = 0.0;
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
+        40.,
+        3. / 2.,
+        0.,
         dist_to_focus,
         0.0,
         1.0,
@@ -684,11 +758,11 @@ fn custom_scene(aspect_ratio: f32) -> World {
     World {
         hittables,
         camera,
-        background_color: Color::zeros(),
+        ..World::default()
     }
 }
 
-fn space_dount(aspect_ratio: f32) -> World {
+fn space_dount() -> World {
     let mut hittables = HittableList::new();
     let mut rng = rand::thread_rng();
 
@@ -762,16 +836,14 @@ fn space_dount(aspect_ratio: f32) -> World {
     let lookfrom = Point::new(478.0, 278.0, -600.0);
     let lookat = Point::new(278.0, 278.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
-    let vfov = 40.0;
-    let aperture = 0.0;
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
+        40.,
+        3. / 2.,
+        0.,
         dist_to_focus,
         0.0,
         1.0,
@@ -780,66 +852,61 @@ fn space_dount(aspect_ratio: f32) -> World {
     World {
         hittables,
         camera,
-        background_color: Color::zeros(),
+        ..World::default()
     }
 }
 
-fn imagine(aspect_ratio: f32) -> World {
+fn imagine() -> World {
     let mut hittables = HittableList::new();
     let mut rng = rand::thread_rng();
 
-    // Cilinder lights
-    hittables.add(Box::new(TracedSDF {
-        sdf: Box::new(SDFCilinder {
-            center: Point::new(100., 0., -30.),
-            radius: 10.,
-        }),
-        material: Material::DiffuseLight(Color::new(239. / 255., 162. / 255., 13. / 255.) * 1.),
+    let orange = Color::new(253. / 255., 106. / 255., 7. / 255.);
+    let teal = Color::new(64. / 255., 231. / 255., 184. / 255.);
+    let blue = Color::new(142. / 255., 226. / 255., 224. / 255.);
+
+    // Cylinder lights
+    hittables.add(Box::new(Cylinder {
+        center: Point::new(100., 0., -30.),
+        axis: Vec3::new(0., 1., 0.),
+        radius: 10.,
+        material: Material::DiffuseLight(orange * 0.8),
     }));
-    hittables.add(Box::new(TracedSDF {
-        sdf: Box::new(SDFCilinder {
-            center: Point::new(100., 0., 0.),
-            radius: 10.,
-        }),
-        material: Material::DiffuseLight(Color::new(64. / 255., 231. / 255., 184. / 255.) * 1.),
+    hittables.add(Box::new(Cylinder {
+        center: Point::new(100., 0., 0.),
+        axis: Vec3::new(0., 1., 0.),
+        radius: 10.,
+        material: Material::DiffuseLight(teal * 0.8),
     }));
-    hittables.add(Box::new(TracedSDF {
-        sdf: Box::new(SDFCilinder {
-            center: Point::new(100., 0., 30.),
-            radius: 10.,
-        }),
-        material: Material::DiffuseLight(Color::new(142. / 255., 226. / 255., 224. / 255.) * 1.),
+    hittables.add(Box::new(Cylinder {
+        center: Point::new(100., 0., 30.),
+        axis: Vec3::new(0., 1., 0.),
+        radius: 10.,
+        material: Material::DiffuseLight(blue * 0.8),
     }));
 
-    // Cilinder gasses
+    // Gasses
     hittables.add(Box::new(ConstantMedium::new(
-        Box::new(TracedSDF {
-            sdf: Box::new(SDFCilinder {
-                center: Point::new(100., 0., -30.),
-                radius: 15.,
-            }),
-            material: Material::Dielectric(1.5),
-        }),
-        0.0001,
+        Box::new(Cube::new(
+            Point::new(80., 0., -60.),
+            Point::new(120., 300., 60.),
+            Material::Dielectric(1.5),
+        )),
+        0.01,
         Color::ones(),
     )));
     hittables.add(Box::new(ConstantMedium::new(
-        Box::new(TracedSDF {
-            sdf: Box::new(SDFCilinder {
-                center: Point::new(100., 0., 0.),
-                radius: 15.,
-            }),
-            material: Material::Dielectric(1.5),
-        }),
-        0.0001,
+        Box::new(Cube::new(
+            Point::new(80., 0., -100.),
+            Point::new(120., 300., 100.),
+            Material::Dielectric(1.5),
+        )),
+        0.001,
         Color::ones(),
     )));
     hittables.add(Box::new(ConstantMedium::new(
-        Box::new(TracedSDF {
-            sdf: Box::new(SDFCilinder {
-                center: Point::new(100., 0., 30.),
-                radius: 15.,
-            }),
+        Box::new(Sphere {
+            center: Point::zeros(),
+            radius: 5000.,
             material: Material::Dielectric(1.5),
         }),
         0.0001,
@@ -847,64 +914,52 @@ fn imagine(aspect_ratio: f32) -> World {
     )));
 
     // Floor
-    hittables.add(Box::new(TracedSDF {
-        sdf: sdf::finite_plane(Point::new(0., 0., 0.), 400.),
-        // material: Material::Metal(Color::new(0.95, 0.95, 0.95), 0.01),
-        material: Material::Lambertian(Color::new(0.1, 0.1, 0.3)),
+    hittables.add(Box::new(XZRect {
+        x0: -100.,
+        x1: 100.,
+        z0: -300.,
+        z1: 300.,
+        k: 0.,
+        material: Material::Metal(Color::new(0.95, 0.95, 0.95), 0.01),
     }));
 
     // Pyramids
     let mut pyramids: Vec<Box<dyn Hittable>> = Vec::new();
     for _ in 0..20 {
-        let x = rng.gen_range(50., 80.);
-        let y = rng.gen_range(-10., 0.);
-        let z = rng.gen_range(-200., 200.);
-        let size = rng.gen_range(10., 40.);
+        let size = rng.gen_range(10., 30.);
+        let top = Point::new(
+            rng.gen_range(70., 100. - size),
+            rng.gen_range(10., 30.),
+            rng.gen_range(-140., 140.),
+        );
+
         pyramids.push(Box::new(RotateY::new(
-            Box::new(TracedSDF {
-                sdf: Box::new(SDFOctahedron {
-                    center: Point::new(x, y, z),
-                    size,
-                }),
-                material: Material::Metal(Color::new(0.95, 0.95, 0.95), 0.1),
-            }),
+            Box::new(Pyramid::new(
+                top,
+                Point::new(top.x - size, -10., top.z + size),
+                Point::new(top.x + size, -10., top.z + size),
+                Point::new(top.x + size, -10., top.z - size),
+                Point::new(top.x - size, -10., top.z - size),
+                Material::Metal(Color::new(0.95, 0.95, 0.95), 0.3),
+            )),
             rng.gen_range(-60., 60.),
         )));
     }
     let bvh = BVHNode::new(pyramids, 0.0, 1.0);
     hittables.add(Box::new(bvh));
 
-    // Stars
-    let mut stars: Vec<Box<dyn Hittable>> = Vec::new();
-    for i in 0..200 {
-        let rad = (i as f32 / 90.) * std::f32::consts::TAU;
-
-        let x = rad.cos() * 800.;
-        let y = 400. + rng.gen_range(-400., 400.);
-        let z = rad.sin() * 800.;
-        stars.push(Box::new(Sphere {
-            center: Point::new(x, y, z),
-            radius: 0.5,
-            material: Material::DiffuseLight(Color::ones() * 10.),
-        }));
-    }
-    let bvh = BVHNode::new(stars, 0.0, 1.0);
-    hittables.add(Box::new(bvh));
-
     // Camera
-    let lookfrom = Point::new(-300.0, 70.0, 0.0);
-    let lookat = Point::new(200., -10., 0.);
+    let lookfrom = Point::new(-100.0, 40.0, 0.0);
+    let lookat = Point::new(200., 30., 0.);
     let dist_to_focus = 100.; //(lookfrom - lookat).length();
-    let vfov = 20.0;
-    let aperture = 0.1;
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
+        60.,
+        1.,
+        0.1,
         dist_to_focus,
         0.0,
         1.0,
@@ -913,25 +968,27 @@ fn imagine(aspect_ratio: f32) -> World {
     World {
         hittables,
         camera,
-        background_color: Color::zeros(),
+        background_color_top: Color::zeros(),
+        background_color_bottom: Color::new(0.005, 0.005, 0.02),
+        samples_per_pixel: 200,
+        ..World::default()
     }
 }
 
-fn menger_sponge(aspect_ratio: f32) -> World {
+fn menger_sponge() -> World {
     let mut hittables = HittableList::new();
-    let mut rng = rand::thread_rng();
 
-    let boxes = {
+    let sponge = {
         let a = Box::new(SDFCube {
             center: Point::zeros(),
-            dimensions: Vec3::from(30.),
+            dimensions: Vec3::from(33.),
         });
 
         let mut b = sdf::cross(Point::zeros(), 1. / 3.);
-        for i in 0..10 {
+        for i in 0..20 {
             b = Box::new(SDFUnion {
                 a: Box::new(SDFRepetition {
-                    a: sdf::cross(Point::from(rng.gen_range(0., 8.)), 1. / 3. * i as f32),
+                    a: sdf::cross(Point::zeros(), 1. / 3. * i as f32),
                     repetition: Vec3::from(3. * i as f32),
                 }),
                 b,
@@ -943,22 +1000,28 @@ fn menger_sponge(aspect_ratio: f32) -> World {
             material: Material::Lambertian(Color::new(0.8, 0.1, 0.1)),
         }
     };
-    hittables.add(Box::new(boxes));
+    hittables.add(Box::new(sponge));
+
+    hittables.add(Box::new(Sphere {
+        center: Point::new(15.0, 0.0, 13.) * 1.2,
+        radius: 0.5,
+        material: Material::DiffuseLight(Color::from(3.)),
+    }));
 
     // Camera
-    let lookfrom = Point::new(-5.0, 2.0, -13.0) * 10.;
+    // let lookfrom = Point::new(3.0, 0.0, 3.0);
+    // let lookat = Point::new(13.0, 0.0, 13.0);
+    let lookfrom = Point::new(13.0, 0.0, 0.0);
     let lookat = Point::new(0.0, 0.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
-    let vfov = 40.0;
-    let aperture = 0.0;
 
     let camera = Camera::new(
         lookfrom,
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
+        40.,
+        3. / 2.,
+        0.,
         dist_to_focus,
         0.0,
         1.0,
@@ -967,26 +1030,6 @@ fn menger_sponge(aspect_ratio: f32) -> World {
     World {
         hittables,
         camera,
-        background_color: Color::zeros(),
+        ..World::default()
     }
-}
-
-fn default_camera(aspect_ratio: f32) -> Camera {
-    let lookfrom = Point::new(13.0, 2.0, 3.0);
-    let lookat = Point::new(0.0, 0.0, 0.0);
-    let dist_to_focus = 10.0;
-    let vfov = 20.0;
-    let aperture = 0.0;
-
-    Camera::new(
-        lookfrom,
-        lookat,
-        Vec3::new(0.0, 1.0, 0.0),
-        vfov,
-        aspect_ratio,
-        aperture,
-        dist_to_focus,
-        0.0,
-        1.0,
-    )
 }
