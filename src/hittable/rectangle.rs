@@ -10,10 +10,10 @@ pub struct XYRect {
 }
 
 impl Hittable for XYRect {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let t = (self.k - ray.origin.z) / ray.direction.z;
 
-        if t < t_min || t > t_max {
+        if t < taemin || t > t_max {
             return false;
         }
 
@@ -53,10 +53,10 @@ pub struct XZRect {
 }
 
 impl Hittable for XZRect {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let t = (self.k - ray.origin.y) / ray.direction.y;
 
-        if t < t_min || t > t_max {
+        if t < taemin || t > t_max {
             return false;
         }
 
@@ -96,10 +96,10 @@ pub struct YZRect {
 }
 
 impl Hittable for YZRect {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let t = (self.k - ray.origin.x) / ray.direction.x;
 
-        if t < t_min || t > t_max {
+        if t < taemin || t > t_max {
             return false;
         }
 

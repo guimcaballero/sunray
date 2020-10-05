@@ -9,7 +9,7 @@ pub struct Cylinder {
 }
 
 impl Hittable for Cylinder {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let oc = ray.origin - self.center;
         let card = self.axis.dot(&ray.direction);
         let caoc = self.axis.dot(&ray.origin);
@@ -25,7 +25,7 @@ impl Hittable for Cylinder {
         let h = h.sqrt();
 
         let temp = (-b - h) / a;
-        if t_min < temp && temp < t_max {
+        if taemin < temp && temp < t_max {
             hit_record.t = temp;
             hit_record.point = ray.at(temp);
             let outward_normal = (hit_record.point - self.center) / self.radius;
@@ -34,7 +34,7 @@ impl Hittable for Cylinder {
         }
 
         let temp = (-b + h) / a;
-        if t_min < temp && temp < t_max {
+        if taemin < temp && temp < t_max {
             hit_record.t = temp;
             hit_record.point = ray.at(temp);
             let outward_normal = (hit_record.point - self.center) / self.radius;

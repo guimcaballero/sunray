@@ -75,8 +75,8 @@ impl Cube {
 }
 
 impl Hittable for Cube {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
-        self.sides.hit(ray, t_min, t_max, hit_record)
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+        self.sides.hit(ray, taemin, t_max, hit_record)
     }
 
     #[allow(unused_variables)]

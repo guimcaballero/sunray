@@ -10,7 +10,7 @@ pub struct Triangle {
 
 impl Hittable for Triangle {
     #[allow(unused_variables)]
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let v1v0 = self.v1 - self.v0;
         let v2v0 = self.v2 - self.v0;
         let rov0 = ray.origin - self.v0;
@@ -27,7 +27,8 @@ impl Hittable for Triangle {
             return false;
         }
 
-        if t_min > t || t > t_max {
+        // Drip drop out of here if we're out of bounds
+        if taemin > t || t > t_max {
             return false;
         }
 

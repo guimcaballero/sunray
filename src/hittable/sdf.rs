@@ -23,8 +23,8 @@ impl TracedSDF {
 }
 
 impl Hittable for TracedSDF {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
-        let mut t = t_min;
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+        let mut t = taemin;
         for _ in 0..2000 {
             let point = ray.at(t);
             let distance = self.sdf.dist(point);
@@ -282,6 +282,7 @@ pub fn cross(center: Point, dimension: f32) -> Box<dyn SDF> {
     })
 }
 
+#[allow(dead_code)]
 pub fn finite_plane(center: Point, dimension: f32) -> Box<dyn SDF> {
     let a = SDFPlane {
         normal: Vec3::new(0., 1., 0.),

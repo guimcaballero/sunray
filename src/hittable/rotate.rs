@@ -55,7 +55,7 @@ impl RotateY {
 }
 
 impl Hittable for RotateY {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         // Adapted from https://github.com/cbiffle/rtiow-rust/blob/master/src/object.rs#L349 because what I had before did weird stuff
         fn rot(p: Vec3, sin_theta: f32, cos_theta: f32) -> Vec3 {
             Vec3::new(
@@ -72,7 +72,7 @@ impl Hittable for RotateY {
         };
 
         let mut temp_rec = HitRecord::default();
-        if self.hittable.hit(&rot_ray, t_min, t_max, &mut temp_rec) {
+        if self.hittable.hit(&rot_ray, taemin, t_max, &mut temp_rec) {
             *hit_record = HitRecord {
                 point: rot(temp_rec.point, self.sin_theta, self.cos_theta),
                 normal: rot(temp_rec.normal, self.sin_theta, self.cos_theta),

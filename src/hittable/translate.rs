@@ -12,14 +12,14 @@ impl Translate {
 }
 
 impl Hittable for Translate {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let moved = Ray {
             origin: ray.origin - self.offset,
             direction: ray.direction,
             time: ray.time,
         };
 
-        if !self.hittable.hit(&moved, t_min, t_max, hit_record) {
+        if !self.hittable.hit(&moved, taemin, t_max, hit_record) {
             return false;
         }
 

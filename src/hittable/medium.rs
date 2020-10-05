@@ -18,7 +18,7 @@ impl ConstantMedium {
 }
 
 impl Hittable for ConstantMedium {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let mut rec1 = HitRecord::default();
         let mut rec2 = HitRecord::default();
 
@@ -35,8 +35,8 @@ impl Hittable for ConstantMedium {
             return false;
         }
 
-        if rec1.t < t_min {
-            rec1.t = t_min
+        if rec1.t < taemin {
+            rec1.t = taemin
         }
         if rec2.t > t_max {
             rec2.t = t_max

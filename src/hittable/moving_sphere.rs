@@ -10,7 +10,7 @@ pub struct MovingSphere {
 }
 
 impl Hittable for MovingSphere {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let center = self.center(ray.time);
 
         let oc = ray.origin - center;
@@ -23,7 +23,7 @@ impl Hittable for MovingSphere {
             let root = discriminant.sqrt();
 
             let temp = (-half_b - root) / a;
-            if t_min < temp && temp < t_max {
+            if taemin < temp && temp < t_max {
                 hit_record.t = temp;
                 hit_record.point = ray.at(temp);
                 let outward_normal = (hit_record.point - center) / self.radius;
@@ -34,7 +34,7 @@ impl Hittable for MovingSphere {
             }
 
             let temp = (-half_b + root) / a;
-            if t_min < temp && temp < t_max {
+            if taemin < temp && temp < t_max {
                 hit_record.t = temp;
                 hit_record.point = ray.at(temp);
                 let outward_normal = (hit_record.point - center) / self.radius;

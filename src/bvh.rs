@@ -10,8 +10,8 @@ pub struct BVHNode {
 }
 
 impl Hittable for BVHNode {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
-        if !self.bbox.hit(ray, t_min, t_max) {
+    fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
+        if !self.bbox.hit(ray, taemin, t_max) {
             return false;
         }
 
@@ -19,11 +19,11 @@ impl Hittable for BVHNode {
         let mut hit_right = false;
 
         if let Some(left) = &self.left {
-            hit_left = left.hit(ray, t_min, t_max, hit_record);
+            hit_left = left.hit(ray, taemin, t_max, hit_record);
         }
         let t_max = if hit_left { hit_record.t } else { t_max };
         if let Some(right) = &self.right {
-            hit_right = right.hit(ray, t_min, t_max, hit_record);
+            hit_right = right.hit(ray, taemin, t_max, hit_record);
         }
 
         hit_left || hit_right
