@@ -8,6 +8,7 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::time::Instant;
 
+mod onb;
 mod perlin;
 mod vec3;
 use vec3::*;

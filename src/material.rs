@@ -1,4 +1,4 @@
-use crate::{hit_record::*, ray::*, texture::*, vec3::*};
+use crate::{hit_record::*, onb::*, ray::*, texture::*, vec3::*};
 use rand::*;
 use std::f32::consts::PI;
 
@@ -29,14 +29,16 @@ impl Material {
                 return false;
             }
             Self::Lambertian(alb) => {
-                let direction = (hit_record.normal + Vec3::random_unit_vector()).normalize();
+                let onb = ONB::build_from_w(hit_record.normal);
+                // let direction = (hit_record.normal + Vec3::random_unit_vector()).normalize();
+                let direction = onb.local(Vec3::random_cosine_direction());
                 *scattered = Ray {
                     origin: hit_record.point,
                     direction,
                     time: ray_in.time,
                 };
                 *albedo = alb.clone();
-                *pdf = hit_record.normal.dot(&scattered.direction) / PI;
+                *pdf = onb.w.dot(&scattered.direction) / PI;
 
                 return true;
             }
