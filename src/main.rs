@@ -129,6 +129,8 @@ fn ray_color(
 
     let mut scattered = Ray::default();
     let mut attenuation = Color::new(0.0, 0.0, 0.0);
+    let mut albedo = Color::new(0.0, 0.0, 0.0);
+    let mut pdf = 0.;
     let emitted =
         hit_record
             .material
@@ -136,7 +138,7 @@ fn ray_color(
 
     if !hit_record
         .material
-        .scatter(&ray, &hit_record, &mut attenuation, &mut scattered)
+        .scatter(&ray, &hit_record, &mut albedo, &mut scattered, &mut pdf)
     {
         return emitted;
     }
@@ -148,6 +150,9 @@ fn ray_color(
         hittables,
         depth - 1,
     );
+    let scattering_pdf = hit_record
+        .material
+        .scattering_pdf(&ray, &hit_record, &scattered);
 
-    emitted + attenuation * color
+    emitted + albedo * scattering_pdf * (color / pdf)
 }

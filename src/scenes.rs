@@ -14,7 +14,7 @@ use crate::{
 };
 use rand::Rng;
 
-const SCENE: Scene = Scene::Imagine;
+const SCENE: Scene = Scene::CornellBox;
 
 #[allow(dead_code)]
 pub enum Scene {
@@ -415,6 +415,7 @@ fn cornell_box() -> World {
     World {
         hittables,
         camera,
+        samples_per_pixel: 300,
         ..World::default()
     }
 }

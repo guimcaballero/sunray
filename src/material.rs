@@ -1,5 +1,6 @@
 use crate::{hit_record::*, ray::*, texture::*, vec3::*};
 use rand::*;
+use std::f32::consts::PI;
 
 #[derive(Clone)]
 #[allow(dead_code)]
@@ -19,36 +20,38 @@ impl Material {
         &self,
         ray_in: &Ray,
         hit_record: &HitRecord,
-        attenuation: &mut Color,
+        albedo: &mut Color,
         scattered: &mut Ray,
+        pdf: &mut f32,
     ) -> bool {
         match self {
             Self::Normal => {
                 return false;
             }
-            Self::Lambertian(albedo) => {
-                let scatter_direction = hit_record.normal + Vec3::random_unit_vector();
-                let ray = Ray {
+            Self::Lambertian(alb) => {
+                let direction = (hit_record.normal + Vec3::random_unit_vector()).normalize();
+                *scattered = Ray {
                     origin: hit_record.point,
-                    direction: scatter_direction,
+                    direction,
                     time: ray_in.time,
                 };
-                *scattered = ray;
-                *attenuation = albedo.clone();
+                *albedo = alb.clone();
+                *pdf = hit_record.normal.dot(&scattered.direction) / PI;
+
                 return true;
             }
-            Self::LambertianTexture(albedo) => {
-                let scatter_direction = hit_record.normal + Vec3::random_unit_vector();
-                let ray = Ray {
+            Self::LambertianTexture(alb) => {
+                let direction = (hit_record.normal + Vec3::random_unit_vector()).normalize();
+                *scattered = Ray {
                     origin: hit_record.point,
-                    direction: scatter_direction,
+                    direction,
                     time: ray_in.time,
                 };
-                *scattered = ray;
-                *attenuation = albedo(hit_record.u, hit_record.v, hit_record.point);
+                *albedo = alb(hit_record.u, hit_record.v, hit_record.point);
+                *pdf = hit_record.normal.dot(&scattered.direction) / PI;
                 return true;
             }
-            Self::Metal(albedo, fuzz) => {
+            Self::Metal(alb, fuzz) => {
                 let reflected = ray_in.direction.normalize().reflect(&hit_record.normal);
                 let ray = Ray {
                     origin: hit_record.point,
@@ -56,11 +59,11 @@ impl Material {
                     time: ray_in.time,
                 };
                 *scattered = ray;
-                *attenuation = albedo.clone();
+                *albedo = alb.clone();
                 return reflected.dot(&hit_record.normal) > 0.0;
             }
             Self::Dielectric(ref_idx) => {
-                *attenuation = Color::ones();
+                *albedo = Color::ones();
                 let eta_over_etai = if hit_record.front_face {
                     1.0 / *ref_idx
                 } else {
@@ -105,15 +108,28 @@ impl Material {
             Self::DiffuseLightTexture(_) => {
                 return false;
             }
-            Self::Isotropic(albedo) => {
+            Self::Isotropic(alb) => {
                 *scattered = Ray {
                     origin: hit_record.point,
                     direction: Vec3::random_in_unit_sphere(),
                     time: ray_in.time,
                 };
-                *attenuation = albedo.clone();
+                *albedo = alb.clone();
                 return true;
             }
+        }
+    }
+    pub fn scattering_pdf(&self, ray_in: &Ray, hit_record: &HitRecord, scattered: &Ray) -> f32 {
+        match self {
+            Self::Lambertian(albedo) => {
+                let cosine = hit_record.normal.dot(&scattered.direction.normalize());
+                if cosine < 0. {
+                    0.
+                } else {
+                    cosine / PI
+                }
+            }
+            _ => 0.,
         }
     }
 
