@@ -1,4 +1,5 @@
 use crate::{hittable::*, material::*, vec3::*};
+use rand::Rng;
 
 pub struct XYRect {
     pub x0: f32,
@@ -83,6 +84,33 @@ impl Hittable for XZRect {
             min: Point::new(self.x0, self.z0, self.k - 0.0001),
             max: Point::new(self.x1, self.z1, self.k + 0.0001),
         })
+    }
+
+    fn pdf_value(&self, point: &Point, vector: &Vec3) -> f32 {
+        let mut hit_record = HitRecord::default();
+        let ray = Ray {
+            origin: *point,
+            direction: *vector,
+            time: 0.,
+        };
+        if !self.hit(&ray, 0.001, f32::INFINITY, &mut hit_record) {
+            return 0.;
+        }
+
+        let area = (self.x1 - self.x0) * (self.z1 - self.z0);
+        let distance_squared = hit_record.t * hit_record.t * vector.length_squared();
+        let cosine = (vector.dot(&hit_record.normal) / vector.length()).abs();
+
+        distance_squared / (cosine * area)
+    }
+    fn random(&self, point: &Point) -> Vec3 {
+        let mut rng = rand::thread_rng();
+        let random_point = Point::new(
+            rng.gen_range(self.x0, self.x1),
+            self.k,
+            rng.gen_range(self.z0, self.z1),
+        );
+        random_point - *point
     }
 }
 

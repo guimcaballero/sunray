@@ -1,4 +1,4 @@
-#![feature(clamp)]
+#![feature(clamp, box_syntax)]
 
 use rand::Rng;
 use rayon::prelude::*;
@@ -8,6 +8,9 @@ use std::path::Path;
 use std::time::Instant;
 
 mod onb;
+use onb::*;
+mod pdf;
+use pdf::*;
 mod perlin;
 mod vec3;
 use vec3::*;
@@ -130,7 +133,7 @@ fn ray_color(
     let mut scattered = Ray::default();
     let mut attenuation = Color::new(0.0, 0.0, 0.0);
     let mut albedo = Color::new(0.0, 0.0, 0.0);
-    let mut pdf = 0.;
+    let mut pdf_val = 0.;
     let emitted =
         hit_record
             .material
@@ -138,33 +141,33 @@ fn ray_color(
 
     if !hit_record
         .material
-        .scatter(&ray, &hit_record, &mut albedo, &mut scattered, &mut pdf)
+        .scatter(&ray, &hit_record, &mut albedo, &mut scattered, &mut pdf_val)
     {
         return emitted;
     }
 
-    let mut rng = rand::thread_rng();
-    let on_light = Point::new(rng.gen_range(213., 343.), 554., rng.gen_range(227., 332.));
-    let to_light = on_light - hit_record.point;
-    let distance_squared = to_light.length_squared();
-    let to_light = to_light.normalize();
-
-    if to_light.dot(&hit_record.normal) < 0. {
-        return emitted;
-    }
-
-    let light_area = (343. - 213.) * (332. - 227.);
-    let light_cosine = to_light.y.abs();
-    if light_cosine < 0.000001 {
-        return emitted;
-    }
-
-    pdf = distance_squared / (light_cosine * light_area);
+    use crate::hittable::rectangle::*;
+    use crate::material::*;
+    let light_shape = box XZRect {
+        x0: 213.,
+        x1: 343.,
+        z0: 227.,
+        z1: 332.,
+        k: 554.,
+        material: Material::Dielectric(1.5),
+    };
+    let p = box PDF::Hittable {
+        hittable: light_shape,
+        origin: hit_record.point,
+    };
+    let q = box PDF::Cosine(ONB::build_from_w(hit_record.normal));
+    let mix = PDF::Mixture { p, q };
     scattered = Ray {
         origin: hit_record.point,
-        direction: to_light,
+        direction: mix.generate(),
         time: ray.time,
     };
+    pdf_val = mix.value(scattered.direction);
 
     let color = ray_color(
         &scattered,
@@ -177,5 +180,5 @@ fn ray_color(
         .material
         .scattering_pdf(&ray, &hit_record, &scattered);
 
-    emitted + albedo * scattering_pdf * (color / pdf)
+    emitted + albedo * scattering_pdf * (color / pdf_val)
 }

@@ -1,4 +1,4 @@
-use crate::{hittable::*, vec3::*};
+use crate::hittable::*;
 
 pub struct FlipFace {
     pub hittable: Box<dyn Hittable>,
