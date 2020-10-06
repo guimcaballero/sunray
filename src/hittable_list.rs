@@ -1,4 +1,5 @@
-use crate::{aabb::*, hit_record::*, hittable::*, ray::*};
+use crate::{aabb::*, hit_record::*, hittable::*, ray::*, vec3::*};
+use rand::seq::SliceRandom;
 
 pub struct HittableList {
     objects: Vec<Box<dyn Hittable>>,
@@ -54,5 +55,23 @@ impl<'a> Hittable for HittableList {
         }
 
         Some(temp_box)
+    }
+
+    fn pdf_value(&self, point: &Point, vector: &Vec3) -> f32 {
+        let weight = 1.0 / self.objects.len() as f32;
+        let mut sum = 0.0;
+
+        for object in &self.objects {
+            sum += weight * object.pdf_value(point, vector);
+        }
+
+        sum
+    }
+
+    fn random(&self, point: &Point) -> Vec3 {
+        self.objects
+            .choose(&mut rand::thread_rng())
+            .unwrap()
+            .random(point)
     }
 }

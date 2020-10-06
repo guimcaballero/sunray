@@ -34,6 +34,7 @@ pub enum Scene {
 
 pub struct World {
     pub hittables: HittableList,
+    pub lights: Box<dyn Hittable>,
     pub camera: Camera,
 
     pub background_color_top: Color,
@@ -64,6 +65,7 @@ impl Default for World {
 
         Self {
             hittables: HittableList::new(),
+            lights: box HittableList::new(),
             camera,
 
             background_color_top: Color::zeros(),
@@ -369,22 +371,27 @@ fn cornell_box() -> World {
         let cube = Box::new(Cube::new(
             Point::zeros(),
             Point::new(165.0, 330.0, 165.0),
-            Material::Lambertian(Color::from(0.73)),
+            Material::Metal(Color::new(0.8, 0.85, 0.88), 0.),
         ));
         let rot = Box::new(RotateY::new(cube, 15.0));
         Box::new(Translate::new(rot, Vec3::new(265.0, 0.0, 295.0)))
     };
     hittables.add(tall_cube);
-    let short_cube = {
-        let cube = Box::new(Cube::new(
-            Point::zeros(),
-            Point::from(165.0),
-            Material::Lambertian(Color::from(0.73)),
-        ));
-        let rot = Box::new(RotateY::new(cube, -18.0));
-        Box::new(Translate::new(rot, Vec3::new(130.0, 0.0, 65.0)))
-    };
-    hittables.add(short_cube);
+    // let short_cube = {
+    //     let cube = Box::new(Cube::new(
+    //         Point::zeros(),
+    //         Point::from(165.0),
+    //         Material::Lambertian(Color::from(0.73)),
+    //     ));
+    //     let rot = Box::new(RotateY::new(cube, -18.0));
+    //     Box::new(Translate::new(rot, Vec3::new(130.0, 0.0, 65.0)))
+    // };
+    // hittables.add(short_cube);
+    hittables.add(box Sphere {
+        center: Point::new(190., 90., 190.),
+        radius: 90.,
+        material: Material::Dielectric(1.5),
+    });
 
     // Light
     hittables.add(Box::new(FlipFace {
@@ -397,6 +404,20 @@ fn cornell_box() -> World {
             material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
         }),
     }));
+    let mut lights = HittableList::new();
+    lights.add(box XZRect {
+        x0: 213.0,
+        x1: 343.0,
+        z0: 227.0,
+        z1: 332.0,
+        k: 550.0,
+        material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
+    });
+    lights.add(box Sphere {
+        center: Point::new(190., 90., 190.),
+        radius: 90.,
+        material: Material::Dielectric(1.5),
+    });
 
     let lookfrom = Point::new(278.0, 278.0, -800.0);
     let lookat = Point::new(278.0, 278.0, 0.0);
@@ -417,7 +438,8 @@ fn cornell_box() -> World {
     World {
         hittables,
         camera,
-        samples_per_pixel: 300,
+        lights: box lights,
+        samples_per_pixel: 1000,
         ..World::default()
     }
 }

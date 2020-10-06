@@ -1,4 +1,5 @@
-use crate::{hittable::*, material::*, vec3::*};
+use crate::{hittable::*, material::*, onb::*, vec3::*};
+use rand::Rng;
 use std::f32::consts::PI;
 
 #[derive(Clone)]
@@ -57,6 +58,30 @@ impl Hittable for Sphere {
             min: self.center - Vec3::new(self.radius, self.radius, self.radius),
             max: self.center + Vec3::new(self.radius, self.radius, self.radius),
         })
+    }
+
+    fn pdf_value(&self, point: &Point, vector: &Vec3) -> f32 {
+        let mut hit_record = HitRecord::default();
+        let ray = Ray {
+            origin: *point,
+            direction: *vector,
+            time: 0.,
+        };
+        if !self.hit(&ray, 0.001, f32::INFINITY, &mut hit_record) {
+            return 0.;
+        }
+
+        let cos_theta_max =
+            (1. - self.radius * self.radius / (self.center - *point).length_squared()).sqrt();
+        let solid_angle = 2. * PI * (1. - cos_theta_max);
+
+        1. / solid_angle
+    }
+    fn random(&self, point: &Point) -> Vec3 {
+        let direction = self.center - *point;
+        let distance_squared = direction.length_squared();
+        let uvw = ONB::build_from_w(direction);
+        uvw.local(Vec3::random_to_sphere(self.radius, distance_squared))
     }
 }
 

@@ -2,7 +2,7 @@ use rand::*;
 use std::f32::consts::*;
 use std::fmt::Debug;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -201,6 +201,19 @@ impl Vec3 {
         }
     }
 
+    pub fn random_to_sphere(radius: f32, distance_squared: f32) -> Vec3 {
+        let mut rng = rand::thread_rng();
+        let r1 = rng.gen::<f32>();
+        let r2 = rng.gen::<f32>();
+        let z = 1. + r2 * ((1. - radius * radius / distance_squared).sqrt() - 1.);
+
+        let phi = 2. * PI * r1;
+        let x = phi.cos() * (1. - z * z).sqrt();
+        let y = phi.sin() * (1. - z * z).sqrt();
+
+        Vec3::new(x, y, z)
+    }
+
     #[inline(always)]
     pub fn reflect(&self, other: &Vec3) -> Vec3 {
         *self - 2.0 * self.dot(other) * *other
@@ -222,6 +235,17 @@ impl Color {
             y: mut g,
             z: mut b,
         } = self;
+
+        // Replace NaN components with zero. See explanation in Ray Tracing: The Rest of Your Life.
+        if r.is_nan() {
+            r = 0.0
+        }
+        if g.is_nan() {
+            g = 0.0
+        }
+        if b.is_nan() {
+            b = 0.0
+        }
 
         let scale = 1.0 / samples_per_pixel as f32;
         r = (scale * r).sqrt();

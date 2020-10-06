@@ -25,6 +25,7 @@ mod bvh;
 mod camera;
 mod hittable_list;
 mod material;
+use material::ScatterRecord;
 mod scenes;
 mod texture;
 use scenes::*;
@@ -60,6 +61,7 @@ fn get_image_string() -> String {
     let World {
         hittables,
         camera,
+        lights,
         background_color_top,
         background_color_bottom,
         samples_per_pixel,
@@ -96,6 +98,7 @@ fn get_image_string() -> String {
                             background_color_top,
                             background_color_bottom,
                             &hittables,
+                            &*lights,
                             max_depth,
                         );
                     }
@@ -116,6 +119,7 @@ fn ray_color(
     background_color_top: Color,
     background_color_bottom: Color,
     hittables: &dyn Hittable,
+    lights: &dyn Hittable,
     depth: u16,
 ) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
@@ -130,55 +134,63 @@ fn ray_color(
         return (1.0 - t) * background_color_bottom + t * background_color_top;
     }
 
-    let mut scattered = Ray::default();
-    let mut attenuation = Color::new(0.0, 0.0, 0.0);
-    let mut albedo = Color::new(0.0, 0.0, 0.0);
-    let mut pdf_val = 0.;
-    let emitted =
-        hit_record
-            .material
-            .emitted(hit_record.u, hit_record.v, hit_record.point, &hit_record);
+    let emitted = hit_record.material.emitted(
+        ray,
+        &hit_record,
+        hit_record.u,
+        hit_record.v,
+        hit_record.point,
+    );
+    if let Some(srec) = hit_record.material.scatter(ray, &hit_record) {
+        match srec {
+            ScatterRecord::Scatter { pdf, attenuation } => {
+                let light_pdf = PDF::Hittable {
+                    hittable: lights,
+                    origin: hit_record.point,
+                };
+                let p = PDF::Mixture {
+                    p: box light_pdf,
+                    q: box pdf,
+                };
 
-    if !hit_record
-        .material
-        .scatter(&ray, &hit_record, &mut albedo, &mut scattered, &mut pdf_val)
-    {
+                let scattered = Ray {
+                    origin: hit_record.point,
+                    direction: p.generate(),
+                    time: ray.time,
+                };
+                let pdf_val = p.value(scattered.direction);
+
+                return emitted
+                    + attenuation
+                        * hit_record
+                            .material
+                            .scattering_pdf(ray, &hit_record, &scattered)
+                        * ray_color(
+                            &scattered,
+                            background_color_top,
+                            background_color_bottom,
+                            hittables,
+                            lights,
+                            depth - 1,
+                        )
+                        / pdf_val;
+            }
+            ScatterRecord::Specular {
+                specular_ray,
+                attenuation,
+            } => {
+                return attenuation
+                    * ray_color(
+                        &specular_ray,
+                        background_color_top,
+                        background_color_bottom,
+                        hittables,
+                        lights,
+                        depth - 1,
+                    );
+            }
+        }
+    } else {
         return emitted;
     }
-
-    use crate::hittable::rectangle::*;
-    use crate::material::*;
-    let light_shape = box XZRect {
-        x0: 213.,
-        x1: 343.,
-        z0: 227.,
-        z1: 332.,
-        k: 554.,
-        material: Material::Dielectric(1.5),
-    };
-    let p = box PDF::Hittable {
-        hittable: light_shape,
-        origin: hit_record.point,
-    };
-    let q = box PDF::Cosine(ONB::build_from_w(hit_record.normal));
-    let mix = PDF::Mixture { p, q };
-    scattered = Ray {
-        origin: hit_record.point,
-        direction: mix.generate(),
-        time: ray.time,
-    };
-    pdf_val = mix.value(scattered.direction);
-
-    let color = ray_color(
-        &scattered,
-        background_color_top,
-        background_color_bottom,
-        hittables,
-        depth - 1,
-    );
-    let scattering_pdf = hit_record
-        .material
-        .scattering_pdf(&ray, &hit_record, &scattered);
-
-    emitted + albedo * scattering_pdf * (color / pdf_val)
 }

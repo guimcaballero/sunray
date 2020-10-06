@@ -2,19 +2,19 @@ use crate::{hittable::*, onb::*, vec3::*};
 use rand::Rng;
 use std::f32::consts::PI;
 
-pub enum PDF {
+pub enum PDF<'a> {
     Cosine(ONB),
     Hittable {
-        hittable: Box<dyn Hittable>,
+        hittable: &'a dyn Hittable,
         origin: Point,
     },
     Mixture {
-        p: Box<PDF>,
-        q: Box<PDF>,
+        p: Box<PDF<'a>>,
+        q: Box<PDF<'a>>,
     },
 }
 
-impl PDF {
+impl<'a> PDF<'a> {
     pub fn value(&self, direction: Vec3) -> f32 {
         match self {
             Self::Cosine(uvw) => {
