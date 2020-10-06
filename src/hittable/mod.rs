@@ -2,6 +2,7 @@ use crate::{aabb::*, hit_record::*, ray::*};
 
 pub mod cube;
 pub mod cylinder;
+pub mod flip_face;
 pub mod medium;
 pub mod moving_sphere;
 pub mod pyramid;

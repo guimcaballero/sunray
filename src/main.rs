@@ -143,6 +143,29 @@ fn ray_color(
         return emitted;
     }
 
+    let mut rng = rand::thread_rng();
+    let on_light = Point::new(rng.gen_range(213., 343.), 554., rng.gen_range(227., 332.));
+    let to_light = on_light - hit_record.point;
+    let distance_squared = to_light.length_squared();
+    let to_light = to_light.normalize();
+
+    if to_light.dot(&hit_record.normal) < 0. {
+        return emitted;
+    }
+
+    let light_area = (343. - 213.) * (332. - 227.);
+    let light_cosine = to_light.y.abs();
+    if light_cosine < 0.000001 {
+        return emitted;
+    }
+
+    pdf = distance_squared / (light_cosine * light_area);
+    scattered = Ray {
+        origin: hit_record.point,
+        direction: to_light,
+        time: ray.time,
+    };
+
     let color = ray_color(
         &scattered,
         background_color_top,

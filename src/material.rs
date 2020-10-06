@@ -115,6 +115,8 @@ impl Material {
             }
         }
     }
+
+    #[allow(unused_variables)]
     pub fn scattering_pdf(&self, ray_in: &Ray, hit_record: &HitRecord, scattered: &Ray) -> f32 {
         match self {
             Self::Lambertian(_albedo) => {
@@ -130,11 +132,15 @@ impl Material {
     }
 
     pub fn emitted(&self, u: f32, v: f32, point: Point, hit_record: &HitRecord) -> Color {
-        match self {
-            Self::Normal => hit_record.normal,
-            Self::DiffuseLight(emit) => *emit,
-            Self::DiffuseLightTexture(emit) => emit(u, v, point),
-            _ => Color::zeros(),
+        if hit_record.front_face {
+            match self {
+                Self::Normal => hit_record.normal,
+                Self::DiffuseLight(emit) => *emit,
+                Self::DiffuseLightTexture(emit) => emit(u, v, point),
+                _ => Color::zeros(),
+            }
+        } else {
+            Color::zeros()
         }
     }
 }

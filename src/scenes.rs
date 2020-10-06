@@ -3,8 +3,8 @@ use crate::{
     bvh::*,
     camera::*,
     hittable::{
-        cube::*, cylinder::*, medium::*, moving_sphere::*, pyramid::*, rectangle::*, rotate::*,
-        sdf::*, sphere::*, translate::*, triangle::*, *,
+        cube::*, cylinder::*, flip_face::*, medium::*, moving_sphere::*, pyramid::*, rectangle::*,
+        rotate::*, sdf::*, sphere::*, translate::*, triangle::*, *,
     },
     hittable_list::*,
     material::*,
@@ -387,13 +387,15 @@ fn cornell_box() -> World {
     hittables.add(short_cube);
 
     // Light
-    hittables.add(Box::new(XZRect {
-        x0: 213.0,
-        x1: 343.0,
-        z0: 227.0,
-        z1: 332.0,
-        k: 550.0,
-        material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
+    hittables.add(Box::new(FlipFace {
+        hittable: Box::new(XZRect {
+            x0: 213.0,
+            x1: 343.0,
+            z0: 227.0,
+            z1: 332.0,
+            k: 550.0,
+            material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
+        }),
     }));
 
     let lookfrom = Point::new(278.0, 278.0, -800.0);
