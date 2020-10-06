@@ -71,10 +71,10 @@ fn perlin_generate_perm() -> Vec<usize> {
 
     let mut rng = rand::thread_rng();
     for i in (1..POINT_COUNT).rev() {
-        vec.swap(i.into(), rng.gen_range(0, i).into());
+        vec.swap(i, rng.gen_range(0, i));
     }
 
-    return vec;
+    vec
 }
 
 type Corners = [[[Vec3; 2]; 2]; 2];

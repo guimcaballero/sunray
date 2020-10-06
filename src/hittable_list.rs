@@ -35,7 +35,7 @@ impl<'a> Hittable for HittableList {
             }
         }
 
-        return hit_anything;
+        hit_anything
     }
 
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {

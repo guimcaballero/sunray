@@ -61,7 +61,7 @@ impl Pyramid {
             v0: top,
             v1: base3,
             v2: base0,
-            material: material.clone(),
+            material,
         }));
 
         Self {

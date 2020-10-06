@@ -22,7 +22,7 @@ impl AABB {
             }
         }
 
-        return true;
+        true
     }
 
     pub fn surrounding_box(&self, other: AABB) -> AABB {

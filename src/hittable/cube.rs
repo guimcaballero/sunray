@@ -63,7 +63,7 @@ impl Cube {
             z0: box_min.z,
             z1: box_max.z,
             k: box_max.x,
-            material: material.clone(),
+            material,
         }));
 
         Self {

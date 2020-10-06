@@ -63,9 +63,10 @@ pub fn image(filename: &str) -> Texture {
         }
 
         let index = 3 * i + 3 * width * j;
-        let r = data[index] as f32 / 255.0;
-        let g = data[index + 1] as f32 / 255.0;
-        let b = data[index + 2] as f32 / 255.0;
-        Color::new(r, g, b)
+        Color::new(
+            data[index] as f32 / 255.0,
+            data[index + 1] as f32 / 255.0,
+            data[index + 2] as f32 / 255.0,
+        )
     })
 }

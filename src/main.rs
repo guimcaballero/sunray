@@ -1,6 +1,5 @@
 #![feature(clamp)]
 
-use image;
 use rand::Rng;
 use rayon::prelude::*;
 use std::fs::File;
@@ -117,7 +116,7 @@ fn ray_color(
     depth: u16,
 ) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
-    if depth <= 0 {
+    if depth == 0 {
         return Color::zeros();
     }
 

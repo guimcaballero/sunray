@@ -174,7 +174,7 @@ pub struct SDFOctahedron {
 impl SDF for SDFOctahedron {
     fn dist(&self, position: Vec3) -> f32 {
         let p = (position - self.center).abs();
-        (p.x + p.y + p.z - self.size) * 0.57735027
+        (p.x + p.y + p.z - self.size) * 0.577_350_26
     }
 
     #[allow(unused_variables)]

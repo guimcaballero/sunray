@@ -11,8 +11,8 @@ impl ONB {
         a.x * self.u + a.y * self.v + a.z * self.w
     }
 
-    pub fn build_from_w(n: Vec3) -> Self {
-        let w = n.normalize();
+    pub fn build_from_w(normal: Vec3) -> Self {
+        let w = normal.normalize();
         let a = if w.x.abs() > 0.9 {
             Vec3::new(0., 1., 0.)
         } else {

@@ -25,9 +25,7 @@ impl Material {
         pdf: &mut f32,
     ) -> bool {
         match self {
-            Self::Normal => {
-                return false;
-            }
+            Self::Normal => false,
             Self::Lambertian(alb) => {
                 let onb = ONB::build_from_w(hit_record.normal);
                 // let direction = (hit_record.normal + Vec3::random_unit_vector()).normalize();
@@ -37,10 +35,10 @@ impl Material {
                     direction,
                     time: ray_in.time,
                 };
-                *albedo = alb.clone();
+                *albedo = *alb;
                 *pdf = onb.w.dot(&scattered.direction) / PI;
 
-                return true;
+                true
             }
             Self::LambertianTexture(alb) => {
                 let direction = (hit_record.normal + Vec3::random_unit_vector()).normalize();
@@ -51,7 +49,7 @@ impl Material {
                 };
                 *albedo = alb(hit_record.u, hit_record.v, hit_record.point);
                 *pdf = hit_record.normal.dot(&scattered.direction) / PI;
-                return true;
+                true
             }
             Self::Metal(alb, fuzz) => {
                 let reflected = ray_in.direction.normalize().reflect(&hit_record.normal);
@@ -61,8 +59,8 @@ impl Material {
                     time: ray_in.time,
                 };
                 *scattered = ray;
-                *albedo = alb.clone();
-                return reflected.dot(&hit_record.normal) > 0.0;
+                *albedo = *alb;
+                reflected.dot(&hit_record.normal) > 0.0
             }
             Self::Dielectric(ref_idx) => {
                 *albedo = Color::ones();
@@ -102,28 +100,24 @@ impl Material {
                     time: ray_in.time,
                 };
 
-                return true;
+                true
             }
-            Self::DiffuseLight(_) => {
-                return false;
-            }
-            Self::DiffuseLightTexture(_) => {
-                return false;
-            }
+            Self::DiffuseLight(_) => false,
+            Self::DiffuseLightTexture(_) => false,
             Self::Isotropic(alb) => {
                 *scattered = Ray {
                     origin: hit_record.point,
                     direction: Vec3::random_in_unit_sphere(),
                     time: ray_in.time,
                 };
-                *albedo = alb.clone();
-                return true;
+                *albedo = *alb;
+                true
             }
         }
     }
     pub fn scattering_pdf(&self, ray_in: &Ray, hit_record: &HitRecord, scattered: &Ray) -> f32 {
         match self {
-            Self::Lambertian(albedo) => {
+            Self::Lambertian(_albedo) => {
                 let cosine = hit_record.normal.dot(&scattered.direction.normalize());
                 if cosine < 0. {
                     0.
@@ -148,5 +142,5 @@ impl Material {
 fn schlick(cosine: f32, ref_idx: f32) -> f32 {
     let mut r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
     r0 = r0 * r0;
-    return r0 + (1.0 - r0) * (1.0 - cosine).powi(5);
+    r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
 }

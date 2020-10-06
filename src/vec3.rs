@@ -158,7 +158,7 @@ impl Vec3 {
         Self {
             x: r * a.cos(),
             y: r * a.sin(),
-            z: z,
+            z,
         }
     }
 
@@ -166,9 +166,9 @@ impl Vec3 {
     pub fn random_in_hemisphere(normal: &Vec3) -> Self {
         let in_unit_sphere = Self::random_in_unit_sphere();
         if in_unit_sphere.dot(normal) > 0.0 {
-            return in_unit_sphere;
+            in_unit_sphere
         } else {
-            return -in_unit_sphere;
+            -in_unit_sphere
         }
     }
 
@@ -182,7 +182,7 @@ impl Vec3 {
         let x = (phi).cos() * (r2).sqrt();
         let y = (phi).sin() * (r2).sqrt();
 
-        return Vec3::new(x, y, z);
+        Vec3::new(x, y, z)
     }
 
     #[inline(always)]
