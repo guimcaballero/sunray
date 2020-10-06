@@ -8,7 +8,6 @@ use std::path::Path;
 use std::time::Instant;
 
 mod onb;
-use onb::*;
 mod pdf;
 use pdf::*;
 mod perlin;
@@ -160,7 +159,7 @@ fn ray_color(
                 };
                 let pdf_val = p.value(scattered.direction);
 
-                return emitted
+                emitted
                     + attenuation
                         * hit_record
                             .material
@@ -173,13 +172,13 @@ fn ray_color(
                             lights,
                             depth - 1,
                         )
-                        / pdf_val;
+                        / pdf_val
             }
             ScatterRecord::Specular {
                 specular_ray,
                 attenuation,
             } => {
-                return attenuation
+                attenuation
                     * ray_color(
                         &specular_ray,
                         background_color_top,
@@ -187,10 +186,10 @@ fn ray_color(
                         hittables,
                         lights,
                         depth - 1,
-                    );
+                    )
             }
         }
     } else {
-        return emitted;
+        emitted
     }
 }

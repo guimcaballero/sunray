@@ -2,7 +2,6 @@ use crate::{
     hittable::{rectangle::*, *},
     hittable_list::*,
     material::*,
-    vec3::*,
 };
 
 pub struct Cube {
@@ -79,8 +78,7 @@ impl Hittable for Cube {
         self.sides.hit(ray, taemin, t_max, hit_record)
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: self.box_min,
             max: self.box_max,

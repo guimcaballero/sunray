@@ -15,11 +15,6 @@ impl<'a> HittableList {
     pub fn add(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
     }
-
-    #[allow(dead_code)]
-    pub fn clear(&mut self) {
-        self.objects.clear();
-    }
 }
 
 impl<'a> Hittable for HittableList {

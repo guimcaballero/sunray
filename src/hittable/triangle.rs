@@ -1,4 +1,4 @@
-use crate::{hittable::*, material::*, vec3::*};
+use crate::{hittable::*, material::*};
 
 #[derive(Clone)]
 pub struct Triangle {
@@ -9,7 +9,6 @@ pub struct Triangle {
 }
 
 impl Hittable for Triangle {
-    #[allow(unused_variables)]
     fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let v1v0 = self.v1 - self.v0;
         let v2v0 = self.v2 - self.v0;
@@ -42,8 +41,7 @@ impl Hittable for Triangle {
         true
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(
                 self.v0.x.min(self.v1.x).min(self.v2.x),

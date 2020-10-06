@@ -1,4 +1,4 @@
-use crate::{hittable::*, vec3::*};
+use crate::hittable::*;
 
 pub struct Translate {
     pub hittable: Box<dyn Hittable>,
@@ -30,7 +30,6 @@ impl Hittable for Translate {
         true
     }
 
-    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         if let Some(output_box) = self.hittable.bounding_box(t0, t1) {
             Some(AABB {

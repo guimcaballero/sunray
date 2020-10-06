@@ -2,7 +2,6 @@ use crate::{aabb::*, hit_record::*, hittable::*, ray::*};
 use rand::*;
 use std::cmp::Ordering;
 
-#[allow(dead_code)]
 pub struct BVHNode {
     left: Option<Box<dyn Hittable>>,
     right: Option<Box<dyn Hittable>>,
@@ -29,14 +28,12 @@ impl Hittable for BVHNode {
         hit_left || hit_right
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(self.bbox)
     }
 }
 
 impl BVHNode {
-    #[allow(dead_code)]
     pub fn new(mut objects: Vec<Box<dyn Hittable>>, time0: f32, time1: f32) -> Self {
         let axis = rand::thread_rng().gen_range(0, 2);
 
@@ -102,17 +99,14 @@ fn box_compare<'a>(a: &'a dyn Hittable, b: &'a dyn Hittable, axis: u16) -> Order
     panic!("No bounding box in bvh_node constructor.");
 }
 
-#[allow(dead_code)]
 fn box_x_compare<'a>(a: &'a dyn Hittable, b: &'a dyn Hittable) -> Ordering {
     box_compare(a, b, 0)
 }
 
-#[allow(dead_code)]
 fn box_y_compare<'a>(a: &'a dyn Hittable, b: &'a dyn Hittable) -> Ordering {
     box_compare(a, b, 1)
 }
 
-#[allow(dead_code)]
 fn box_z_compare<'a>(a: &'a dyn Hittable, b: &'a dyn Hittable) -> Ordering {
     box_compare(a, b, 2)
 }

@@ -1,5 +1,4 @@
-use crate::{hittable::*, material::*, onb::*, vec3::*};
-use rand::Rng;
+use crate::{hittable::*, material::*, onb::*};
 use std::f32::consts::PI;
 
 #[derive(Clone)]
@@ -52,8 +51,7 @@ impl Hittable for Sphere {
         false
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: self.center - Vec3::new(self.radius, self.radius, self.radius),
             max: self.center + Vec3::new(self.radius, self.radius, self.radius),

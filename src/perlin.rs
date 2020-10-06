@@ -34,12 +34,15 @@ impl Perlin {
 
         let mut corners = [[[Vec3::zeros(); 2]; 2]; 2];
 
+        // Need to clean up this to use iterators
+        #[allow(clippy::needless_range_loop)]
         for di in 0..2 {
             for dj in 0..2 {
                 for dk in 0..2 {
                     let x_index = ((ijk.x as i16 + di as i16) & 255) as usize;
                     let y_index = ((ijk.y as i16 + dj as i16) & 255) as usize;
                     let z_index = ((ijk.z as i16 + dk as i16) & 255) as usize;
+
                     corners[di][dj][dk] = self.rand_vec[(self.perm_x[x_index]
                         ^ self.perm_y[y_index]
                         ^ self.perm_z[z_index])
@@ -83,14 +86,14 @@ fn trilinear_interpolation(corners: &Corners, uvw: Vec3) -> f32 {
 
     let one_minus_uvw = Vec3::ones() - uvw;
 
-    for i in 0..2 {
-        for j in 0..2 {
-            for k in 0..2 {
+    for (i, corner2) in corners.iter().enumerate() {
+        for (j, corner1) in corner2.iter().enumerate() {
+            for (k, corner) in corner1.iter().enumerate() {
                 let ijk = Vec3::new(i as f32, j as f32, k as f32);
                 let one_minus_ijk = Vec3::ones() - ijk;
 
                 accum += (ijk * uvw + one_minus_ijk * one_minus_uvw).multiply_components()
-                    * (uvw - ijk).dot(&corners[i][j][k]);
+                    * (uvw - ijk).dot(&corner);
             }
         }
     }

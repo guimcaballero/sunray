@@ -15,7 +15,6 @@ impl Hittable for FlipFace {
         true
     }
 
-    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         self.hittable.bounding_box(t0, t1)
     }

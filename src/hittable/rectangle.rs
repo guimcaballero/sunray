@@ -1,4 +1,4 @@
-use crate::{hittable::*, material::*, vec3::*};
+use crate::{hittable::*, material::*};
 use rand::Rng;
 
 pub struct XYRect {
@@ -35,8 +35,7 @@ impl Hittable for XYRect {
         true
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(self.x0, self.y0, self.k - 0.0001),
             max: Point::new(self.x1, self.y1, self.k + 0.0001),
@@ -78,8 +77,7 @@ impl Hittable for XZRect {
         true
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(self.x0, self.z0, self.k - 0.0001),
             max: Point::new(self.x1, self.z1, self.k + 0.0001),
@@ -148,8 +146,7 @@ impl Hittable for YZRect {
         true
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(self.y0, self.z0, self.k - 0.0001),
             max: Point::new(self.y1, self.z1, self.k + 0.0001),

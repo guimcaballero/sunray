@@ -2,7 +2,6 @@ use crate::{
     hittable::{triangle::*, *},
     hittable_list::*,
     material::*,
-    vec3::*,
 };
 
 pub struct Pyramid {
@@ -80,8 +79,7 @@ impl Hittable for Pyramid {
         self.sides.hit(ray, taemin, t_max, hit_record)
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(
                 self.top

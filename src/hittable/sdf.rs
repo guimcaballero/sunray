@@ -1,4 +1,4 @@
-use crate::{hittable::*, material::*, vec3::*};
+use crate::{hittable::*, material::*};
 
 pub struct TracedSDF {
     pub sdf: Box<dyn SDF>,
@@ -52,7 +52,6 @@ impl Hittable for TracedSDF {
         false
     }
 
-    #[allow(unused_variables)]
     fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
         self.sdf.bounding_box(t0, t1)
     }
@@ -73,8 +72,7 @@ impl SDF for SDFSphere {
         (position - self.center).length() - self.radius
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: self.center - Point::from(self.radius),
             max: self.center + Point::from(self.radius),
@@ -92,8 +90,7 @@ impl SDF for SDFCilinder {
         Vec3::new(position.x - self.center.x, position.z - self.center.z, 0.).length() - self.radius
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         None
     }
 }
@@ -108,8 +105,7 @@ impl SDF for SDFPlane {
         position.dot(&self.normal) + self.h
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         None
     }
 }
@@ -129,8 +125,7 @@ impl SDF for SDFDonut {
         Vec3::new(qx, qy, 0.0).length() - self.radius1
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: Point::new(
                 -self.radius0 - self.radius1,
@@ -157,8 +152,7 @@ impl SDF for SDFCube {
         q.max(0.0).length() + q.x.max(q.y.max(q.z)).min(0.0)
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: self.center - self.dimensions / 2.,
             max: self.center + self.dimensions / 2.,
@@ -177,8 +171,7 @@ impl SDF for SDFOctahedron {
         (p.x + p.y + p.z - self.size) * 0.577_350_26
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
             min: self.center - Vec3::from(self.size),
             max: self.center + Vec3::from(self.size),
@@ -254,8 +247,7 @@ impl SDF for SDFRepetition {
         self.a.dist(q)
     }
 
-    #[allow(unused_variables)]
-    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         None
     }
 }

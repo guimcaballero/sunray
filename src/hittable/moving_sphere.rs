@@ -1,4 +1,4 @@
-use crate::{hittable::*, material::*, vec3::*};
+use crate::{hittable::*, material::*};
 
 pub struct MovingSphere {
     pub center0: Point,
