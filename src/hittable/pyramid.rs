@@ -123,4 +123,12 @@ impl Hittable for Pyramid {
             ),
         })
     }
+
+    fn pdf_value(&self, point: &Point, vector: &Vec3) -> f32 {
+        self.sides.pdf_value(point, vector)
+    }
+
+    fn random(&self, point: &Point) -> Vec3 {
+        self.sides.random(point)
+    }
 }

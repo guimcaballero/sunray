@@ -274,6 +274,30 @@ pub fn cross(center: Point, dimension: f32) -> Box<dyn SDF> {
     })
 }
 
+pub fn menger_sponge(iterations: usize) -> Box<TracedSDF> {
+    let size = 33.;
+    let a = Box::new(SDFCube {
+        center: Point::zeros(),
+        dimensions: Vec3::from(size),
+    });
+
+    let mut b = sdf::cross(Point::zeros(), (1. / 3.) * size);
+    for i in 1..=iterations {
+        b = Box::new(SDFUnion {
+            a: Box::new(SDFRepetition {
+                a: sdf::cross(Point::zeros(), size / f32::powi(3., i as i32)),
+                repetition: Vec3::from(size * 2. / f32::powi(3., (i as i32) - 1)),
+            }),
+            b,
+        });
+    }
+
+    box TracedSDF {
+        sdf: Box::new(SDFSubstraction { a, b }),
+        material: Material::Lambertian(Color::new(0.8, 0.1, 0.1)),
+    }
+}
+
 #[allow(dead_code)]
 pub fn finite_plane(center: Point, dimension: f32) -> Box<dyn SDF> {
     let a = SDFPlane {

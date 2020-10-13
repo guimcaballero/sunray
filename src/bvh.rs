@@ -85,7 +85,7 @@ impl BVHNode {
     }
 }
 
-fn box_compare<'a>(a: &'a dyn Hittable, b: &'a dyn Hittable, axis: u16) -> Ordering {
+fn box_compare<'a>(a: &'a dyn Hittable, b: &'a dyn Hittable, axis: usize) -> Ordering {
     if let Some(box_a) = a.bounding_box(0.0, 0.0) {
         if let Some(box_b) = b.bounding_box(0.0, 0.0) {
             if let Some(cmp) = box_a.min[axis].partial_cmp(&box_b.min[axis]) {

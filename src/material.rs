@@ -47,11 +47,16 @@ impl Material {
                 pdf: PDF::Cosine(ONB::build_from_w(hit_record.normal)),
             }),
             Self::Metal(albedo, fuzz) => {
-                let reflected = ray_in.direction.normalize().reflect(&hit_record.normal);
+                let reflected = ray_in.direction.reflect(&hit_record.normal);
+                if reflected.x.is_nan() {
+                    dbg!(ray_in.direction, hit_record.normal);
+                    println!("mat");
+                    std::process::exit(1);
+                }
                 Some(ScatterRecord::Specular {
                     specular_ray: Ray {
                         origin: hit_record.point,
-                        direction: reflected + *fuzz * Vec3::random_in_unit_sphere(),
+                        direction: (reflected + *fuzz * Vec3::random_in_unit_sphere()).normalize(),
                         time: 0.,
                     },
                     attenuation: *albedo,
@@ -141,4 +146,39 @@ pub enum ScatterRecord<'a> {
         pdf: PDF<'a>,
         attenuation: Color,
     },
+}
+
+impl std::fmt::Debug for Material {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Lambertian(albedo) => f
+                .debug_struct("Material::Lambertian")
+                .field("albedo", albedo)
+                .finish(),
+            Self::LambertianTexture(_albedo) => {
+                f.debug_struct("Material::LambertianTexture").finish()
+            }
+            Self::Metal(albedo, fuzz) => f
+                .debug_struct("Material::Metal")
+                .field("albedo", albedo)
+                .field("fuzz", fuzz)
+                .finish(),
+            Self::Dielectric(idx) => f
+                .debug_struct("Material::Dielectric")
+                .field("ref_idx", idx)
+                .finish(),
+            Self::DiffuseLight(albedo) => f
+                .debug_struct("Material::DiffuseLight")
+                .field("albedo", albedo)
+                .finish(),
+            Self::DiffuseLightTexture(_albedo) => {
+                f.debug_struct("Material::DiffuseLightTexture").finish()
+            }
+            Self::Isotropic(albedo) => f
+                .debug_struct("Material::Isotropic")
+                .field("albedo", albedo)
+                .finish(),
+            Self::Normal => f.debug_struct("Material::Normal").finish(),
+        }
+    }
 }

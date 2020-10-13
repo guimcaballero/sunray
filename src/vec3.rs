@@ -70,7 +70,7 @@ impl Vec3 {
             z: self.z.min(val),
         }
     }
-    #[inline(always)]
+
     pub fn modulo(&self, other: Vec3) -> Self {
         fn modulo(a: f32, b: f32) -> f32 {
             a - (b * (a / b).floor())
@@ -274,10 +274,10 @@ impl Neg for Vec3 {
     }
 }
 
-impl Index<u16> for Vec3 {
+impl Index<usize> for Vec3 {
     type Output = f32;
 
-    fn index(&self, index: u16) -> &Self::Output {
+    fn index(&self, index: usize) -> &Self::Output {
         match index {
             0 => &self.x,
             1 => &self.y,
@@ -287,8 +287,8 @@ impl Index<u16> for Vec3 {
     }
 }
 
-impl IndexMut<u16> for Vec3 {
-    fn index_mut(&mut self, index: u16) -> &mut Self::Output {
+impl IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match index {
             0 => &mut self.x,
             1 => &mut self.y,

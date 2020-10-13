@@ -14,7 +14,7 @@ use crate::{
 };
 use rand::Rng;
 
-const SCENE: Scene = Scene::CornellBox;
+const SCENE: Scene = Scene::MengerSponge;
 
 #[allow(dead_code)]
 pub enum Scene {
@@ -34,7 +34,7 @@ pub enum Scene {
 
 pub struct World {
     pub hittables: HittableList,
-    pub lights: Box<dyn Hittable>,
+    pub lights: HittableList,
     pub camera: Camera,
 
     pub background_color_top: Color,
@@ -65,7 +65,7 @@ impl Default for World {
 
         Self {
             hittables: HittableList::new(),
-            lights: box HittableList::new(),
+            lights: HittableList::new(),
             camera,
 
             background_color_top: Color::zeros(),
@@ -99,41 +99,20 @@ pub fn generate_world() -> World {
 fn test() -> World {
     let mut hittables = HittableList::new();
 
-    let top = Point::new(0.0, 1.0, 0.0);
-    let size = 1.0;
-    hittables.add(Box::new(Pyramid::new(
-        top,
-        Point::new(top.x - size, 0., top.x + size),
-        Point::new(top.x + size, 0., top.x + size),
-        Point::new(top.x + size, 0., top.x - size),
-        Point::new(top.x - size, 0., top.x - size),
-        Material::Lambertian(Color::new(0.8, 0.2, 0.2)),
-    )));
-    hittables.add(Box::new(Sphere {
-        center: Point::new(0., 4., 3.),
-        radius: 1.,
-        material: Material::DiffuseLight(Color::from(2.)),
-    }));
-
-    let aspect_ratio = 3. / 2.;
-    let camera = Camera::new(
-        Point::new(-10., 2., 4.),
-        Point::zeros(),
-        Vec3::new(0.0, 1.0, 0.0),
-        40.,
-        aspect_ratio,
-        0.,
-        10.,
-        0.0,
-        1.0,
-    );
+    hittables.add(box TracedSDF {
+        sdf: box SDFRepetition {
+            a: box SDFSphere {
+                radius: 0.5,
+                center: Point::from(0.),
+            },
+            repetition: Vec3::from(10.),
+        },
+        material: Material::DiffuseLight(Color::from(0.7)),
+    });
 
     World {
         hittables,
-        samples_per_pixel: 50,
-        max_depth: 50,
-        camera,
-        aspect_ratio,
+        samples_per_pixel: 100,
         ..World::default()
     }
 }
@@ -294,13 +273,14 @@ fn light_rectangle() -> World {
         material: Material::DiffuseLight(Color::new(4.0, 3.0, 1.0)),
     }));
 
-    hittables.add(Box::new(XYRect {
-        x0: 3.0,
-        x1: 5.0,
-        y0: 1.0,
-        y1: 3.0,
+    hittables.add(Box::new(Rect {
+        a0: 3.0,
+        a1: 5.0,
+        b0: 1.0,
+        b1: 3.0,
         k: -2.0,
         material: Material::DiffuseLight(Color::new(4.0, 4.0, 4.0)),
+        plane: Plane::XY,
     }));
 
     let camera = Camera::new(
@@ -326,45 +306,50 @@ fn cornell_box() -> World {
     let mut hittables = HittableList::new();
 
     // Walls
-    hittables.add(Box::new(YZRect {
-        y0: 0.0,
-        y1: 555.0,
-        z0: 0.0,
-        z1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 555.0,
         material: Material::Lambertian(Color::new(0.12, 0.45, 0.15)),
+        plane: Plane::YZ,
     }));
-    hittables.add(Box::new(YZRect {
-        y0: 0.0,
-        y1: 555.0,
-        z0: 0.0,
-        z1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 0.0,
         material: Material::Lambertian(Color::new(0.65, 0.05, 0.05)),
+        plane: Plane::YZ,
     }));
-    hittables.add(Box::new(XZRect {
-        x0: 0.0,
-        x1: 555.0,
-        z0: 0.0,
-        z1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 0.0,
         material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XZ,
     }));
-    hittables.add(Box::new(XZRect {
-        x0: 0.0,
-        x1: 555.0,
-        z0: 0.0,
-        z1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 555.0,
         material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XZ,
     }));
-    hittables.add(Box::new(XYRect {
-        x0: 0.0,
-        x1: 555.0,
-        y0: 0.0,
-        y1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 555.0,
         material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XY,
     }));
 
     let tall_cube = {
@@ -395,23 +380,25 @@ fn cornell_box() -> World {
 
     // Light
     hittables.add(Box::new(FlipFace {
-        hittable: Box::new(XZRect {
-            x0: 213.0,
-            x1: 343.0,
-            z0: 227.0,
-            z1: 332.0,
+        hittable: Box::new(Rect {
+            a0: 213.0,
+            a1: 343.0,
+            b0: 227.0,
+            b1: 332.0,
             k: 550.0,
             material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
+            plane: Plane::XZ,
         }),
     }));
     let mut lights = HittableList::new();
-    lights.add(box XZRect {
-        x0: 213.0,
-        x1: 343.0,
-        z0: 227.0,
-        z1: 332.0,
+    lights.add(box Rect {
+        a0: 213.0,
+        a1: 343.0,
+        b0: 227.0,
+        b1: 332.0,
         k: 550.0,
         material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
+        plane: Plane::XZ,
     });
     lights.add(box Sphere {
         center: Point::new(190., 90., 190.),
@@ -438,8 +425,8 @@ fn cornell_box() -> World {
     World {
         hittables,
         camera,
-        lights: box lights,
-        samples_per_pixel: 1000,
+        lights,
+        samples_per_pixel: 100,
         ..World::default()
     }
 }
@@ -448,45 +435,50 @@ fn cornell_smokes() -> World {
     let mut hittables = HittableList::new();
 
     // Walls
-    hittables.add(Box::new(YZRect {
-        y0: 0.0,
-        y1: 555.0,
-        z0: 0.0,
-        z1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 555.0,
         material: Material::Lambertian(Color::new(0.12, 0.45, 0.15)),
+        plane: Plane::YZ,
     }));
-    hittables.add(Box::new(YZRect {
-        y0: 0.0,
-        y1: 555.0,
-        z0: 0.0,
-        z1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 0.0,
         material: Material::Lambertian(Color::new(0.65, 0.05, 0.05)),
+        plane: Plane::YZ,
     }));
-    hittables.add(Box::new(XZRect {
-        x0: 0.0,
-        x1: 555.0,
-        z0: 0.0,
-        z1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 0.0,
         material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XZ,
     }));
-    hittables.add(Box::new(XZRect {
-        x0: 0.0,
-        x1: 555.0,
-        z0: 0.0,
-        z1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 555.0,
         material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XZ,
     }));
-    hittables.add(Box::new(XYRect {
-        x0: 0.0,
-        x1: 555.0,
-        y0: 0.0,
-        y1: 555.0,
+    hittables.add(Box::new(Rect {
+        a0: 0.0,
+        a1: 555.0,
+        b0: 0.0,
+        b1: 555.0,
         k: 555.0,
         material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XY,
     }));
 
     let tall_cube = {
@@ -513,13 +505,14 @@ fn cornell_smokes() -> World {
     hittables.add(short_cube);
 
     // Light
-    hittables.add(Box::new(XZRect {
-        x0: 213.0,
-        x1: 343.0,
-        z0: 227.0,
-        z1: 332.0,
+    hittables.add(Box::new(Rect {
+        a0: 213.0,
+        a1: 343.0,
+        b0: 227.0,
+        b1: 332.0,
         k: 550.0,
         material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
+        plane: Plane::XZ,
     }));
 
     let lookfrom = Point::new(278.0, 278.0, -800.0);
@@ -571,13 +564,14 @@ fn final_scene() -> World {
     hittables.add(Box::new(bvh));
 
     // Ceiling light
-    hittables.add(Box::new(XZRect {
-        x0: 123.0,
-        x1: 423.0,
-        z0: 147.0,
-        z1: 412.0,
+    hittables.add(Box::new(Rect {
+        a0: 123.0,
+        a1: 423.0,
+        b0: 147.0,
+        b1: 412.0,
         k: 554.0,
         material: Material::DiffuseLight(Color::new(7.0, 7.0, 7.0)),
+        plane: Plane::XZ,
     }));
 
     // Moving sphere
@@ -849,13 +843,14 @@ fn space_dount() -> World {
     // }));
 
     // Ceiling light
-    hittables.add(Box::new(XZRect {
-        x0: 123.0,
-        x1: 423.0,
-        z0: 147.0,
-        z1: 412.0,
+    hittables.add(Box::new(Rect {
+        a0: 123.0,
+        a1: 423.0,
+        b0: 147.0,
+        b1: 412.0,
         k: 554.0,
         material: Material::DiffuseLight(Color::new(7.0, 7.0, 7.0)),
+        plane: Plane::XZ,
     }));
 
     // Camera
@@ -886,34 +881,34 @@ fn imagine() -> World {
     let mut hittables = HittableList::new();
     let mut rng = rand::thread_rng();
 
-    let orange = Color::new(253. / 255., 106. / 255., 7. / 255.);
+    let orange = Color::new(270. / 255., 106. / 255., 7. / 255.);
     let teal = Color::new(64. / 255., 231. / 255., 184. / 255.);
     let blue = Color::new(142. / 255., 226. / 255., 224. / 255.);
 
     // Cylinder lights
-    hittables.add(Box::new(Cylinder {
+    let orange_cylinder = Cylinder {
         center: Point::new(100., 0., -30.),
-        axis: Vec3::new(0., 1., 0.),
         radius: 10.,
-        material: Material::DiffuseLight(orange * 0.8),
-    }));
-    hittables.add(Box::new(Cylinder {
+        material: Material::DiffuseLight(orange),
+    };
+    let teal_cylinder = Cylinder {
         center: Point::new(100., 0., 0.),
-        axis: Vec3::new(0., 1., 0.),
         radius: 10.,
-        material: Material::DiffuseLight(teal * 0.8),
-    }));
-    hittables.add(Box::new(Cylinder {
+        material: Material::DiffuseLight(teal),
+    };
+    let blue_cylinder = Cylinder {
         center: Point::new(100., 0., 30.),
-        axis: Vec3::new(0., 1., 0.),
         radius: 10.,
-        material: Material::DiffuseLight(blue * 0.8),
-    }));
+        material: Material::DiffuseLight(blue),
+    };
+    hittables.add(box orange_cylinder.clone());
+    hittables.add(box teal_cylinder.clone());
+    hittables.add(box blue_cylinder.clone());
 
     // Gasses
     hittables.add(Box::new(ConstantMedium::new(
         Box::new(Cube::new(
-            Point::new(80., 0., -60.),
+            Point::new(80., -100., -60.),
             Point::new(120., 300., 60.),
             Material::Dielectric(1.5),
         )),
@@ -922,7 +917,7 @@ fn imagine() -> World {
     )));
     hittables.add(Box::new(ConstantMedium::new(
         Box::new(Cube::new(
-            Point::new(80., 0., -100.),
+            Point::new(80., -100., -100.),
             Point::new(120., 300., 100.),
             Material::Dielectric(1.5),
         )),
@@ -940,13 +935,14 @@ fn imagine() -> World {
     )));
 
     // Floor
-    hittables.add(Box::new(XZRect {
-        x0: -100.,
-        x1: 100.,
-        z0: -300.,
-        z1: 300.,
+    hittables.add(Box::new(Rect {
+        a0: -100.,
+        a1: 90.,
+        b0: -300.,
+        b1: 300.,
         k: 0.,
-        material: Material::Metal(Color::new(0.95, 0.95, 0.95), 0.01),
+        material: Material::Metal(Color::from(0.9), 0.2),
+        plane: Plane::XZ,
     }));
 
     // Pyramids
@@ -954,7 +950,7 @@ fn imagine() -> World {
     for _ in 0..20 {
         let size = rng.gen_range(10., 30.);
         let top = Point::new(
-            rng.gen_range(70., 100. - size),
+            rng.gen_range(40., 100. - 2. * size),
             rng.gen_range(10., 30.),
             rng.gen_range(-140., 140.),
         );
@@ -966,7 +962,7 @@ fn imagine() -> World {
                 Point::new(top.x + size, -10., top.z + size),
                 Point::new(top.x + size, -10., top.z - size),
                 Point::new(top.x - size, -10., top.z - size),
-                Material::Metal(Color::new(0.95, 0.95, 0.95), 0.3),
+                Material::Metal(Color::from(0.9), 0.2),
             )),
             rng.gen_range(-60., 60.),
         )));
@@ -984,7 +980,7 @@ fn imagine() -> World {
         lookat,
         Vec3::new(0.0, 1.0, 0.0),
         60.,
-        1.,
+        3. / 2.,
         0.1,
         dist_to_focus,
         0.0,
@@ -994,9 +990,9 @@ fn imagine() -> World {
     World {
         hittables,
         camera,
-        background_color_top: Color::zeros(),
-        background_color_bottom: Color::new(0.005, 0.005, 0.02),
-        samples_per_pixel: 200,
+        background_color_top: Color::new(0.05, 0.05, 0.2),
+        background_color_bottom: Color::zeros(),
+        samples_per_pixel: 100,
         ..World::default()
     }
 }
@@ -1004,40 +1000,12 @@ fn imagine() -> World {
 fn menger_sponge() -> World {
     let mut hittables = HittableList::new();
 
-    let sponge = {
-        let a = Box::new(SDFCube {
-            center: Point::zeros(),
-            dimensions: Vec3::from(33.),
-        });
-
-        let mut b = sdf::cross(Point::zeros(), 1. / 3.);
-        for i in 0..20 {
-            b = Box::new(SDFUnion {
-                a: Box::new(SDFRepetition {
-                    a: sdf::cross(Point::zeros(), 1. / 3. * i as f32),
-                    repetition: Vec3::from(3. * i as f32),
-                }),
-                b,
-            });
-        }
-
-        TracedSDF {
-            sdf: Box::new(SDFSubstraction { a, b }),
-            material: Material::Lambertian(Color::new(0.8, 0.1, 0.1)),
-        }
-    };
-    hittables.add(Box::new(sponge));
-
-    hittables.add(Box::new(Sphere {
-        center: Point::new(15.0, 0.0, 13.) * 1.2,
-        radius: 0.5,
-        material: Material::DiffuseLight(Color::from(3.)),
-    }));
+    hittables.add(sdf::menger_sponge(9));
 
     // Camera
     // let lookfrom = Point::new(3.0, 0.0, 3.0);
     // let lookat = Point::new(13.0, 0.0, 13.0);
-    let lookfrom = Point::new(13.0, 0.0, 0.0);
+    let lookfrom = Point::new(13.0, 9.0, 13.0) * 10.;
     let lookat = Point::new(0.0, 0.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
 
@@ -1056,6 +1024,9 @@ fn menger_sponge() -> World {
     World {
         hittables,
         camera,
+        samples_per_pixel: 100,
+        background_color_top: Color::ones(),
+        background_color_bottom: Color::ones(),
         ..World::default()
     }
 }

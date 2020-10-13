@@ -23,6 +23,7 @@ mod aabb;
 mod bvh;
 mod camera;
 mod hittable_list;
+use hittable_list::*;
 mod material;
 use material::ScatterRecord;
 mod scenes;
@@ -97,7 +98,7 @@ fn get_image_string() -> String {
                             background_color_top,
                             background_color_bottom,
                             &hittables,
-                            &*lights,
+                            &lights,
                             max_depth,
                         );
                     }
@@ -118,7 +119,7 @@ fn ray_color(
     background_color_top: Color,
     background_color_bottom: Color,
     hittables: &dyn Hittable,
-    lights: &dyn Hittable,
+    lights: &HittableList,
     depth: u16,
 ) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
@@ -140,16 +141,22 @@ fn ray_color(
         hit_record.v,
         hit_record.point,
     );
+
     if let Some(srec) = hit_record.material.scatter(ray, &hit_record) {
         match srec {
             ScatterRecord::Scatter { pdf, attenuation } => {
-                let light_pdf = PDF::Hittable {
-                    hittable: lights,
-                    origin: hit_record.point,
-                };
-                let p = PDF::Mixture {
-                    p: box light_pdf,
-                    q: box pdf,
+                // If there are no lights, we have a normal pdf
+                let p = if lights.is_empty() {
+                    pdf
+                } else {
+                    let light_pdf = PDF::Hittable {
+                        hittable: lights,
+                        origin: hit_record.point,
+                    };
+                    PDF::Mixture {
+                        p: box light_pdf,
+                        q: box pdf,
+                    }
                 };
 
                 let scattered = Ray {

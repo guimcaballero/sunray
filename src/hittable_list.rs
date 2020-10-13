@@ -15,6 +15,10 @@ impl<'a> HittableList {
     pub fn add(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.objects.is_empty()
+    }
 }
 
 impl<'a> Hittable for HittableList {

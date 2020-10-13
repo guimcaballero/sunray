@@ -14,55 +14,61 @@ impl Cube {
     pub fn new(box_min: Point, box_max: Point, material: Material) -> Self {
         let mut sides = HittableList::new();
 
-        sides.add(Box::new(XYRect {
-            x0: box_min.x,
-            x1: box_max.x,
-            y0: box_min.y,
-            y1: box_max.y,
+        sides.add(Box::new(Rect {
+            a0: box_min.x,
+            a1: box_max.x,
+            b0: box_min.y,
+            b1: box_max.y,
             k: box_min.z,
             material: material.clone(),
+            plane: Plane::XY,
         }));
-        sides.add(Box::new(XYRect {
-            x0: box_min.x,
-            x1: box_max.x,
-            y0: box_min.y,
-            y1: box_max.y,
+        sides.add(Box::new(Rect {
+            a0: box_min.x,
+            a1: box_max.x,
+            b0: box_min.y,
+            b1: box_max.y,
             k: box_max.z,
             material: material.clone(),
+            plane: Plane::XY,
         }));
 
-        sides.add(Box::new(XZRect {
-            x0: box_min.x,
-            x1: box_max.x,
-            z0: box_min.z,
-            z1: box_max.z,
+        sides.add(Box::new(Rect {
+            a0: box_min.x,
+            a1: box_max.x,
+            b0: box_min.z,
+            b1: box_max.z,
             k: box_min.y,
             material: material.clone(),
+            plane: Plane::XZ,
         }));
-        sides.add(Box::new(XZRect {
-            x0: box_min.x,
-            x1: box_max.x,
-            z0: box_min.z,
-            z1: box_max.z,
+        sides.add(Box::new(Rect {
+            a0: box_min.x,
+            a1: box_max.x,
+            b0: box_min.z,
+            b1: box_max.z,
             k: box_max.y,
             material: material.clone(),
+            plane: Plane::XZ,
         }));
 
-        sides.add(Box::new(YZRect {
-            y0: box_min.y,
-            y1: box_max.y,
-            z0: box_min.z,
-            z1: box_max.z,
+        sides.add(Box::new(Rect {
+            a0: box_min.y,
+            a1: box_max.y,
+            b0: box_min.z,
+            b1: box_max.z,
             k: box_min.x,
             material: material.clone(),
+            plane: Plane::YZ,
         }));
-        sides.add(Box::new(YZRect {
-            y0: box_min.y,
-            y1: box_max.y,
-            z0: box_min.z,
-            z1: box_max.z,
+        sides.add(Box::new(Rect {
+            a0: box_min.y,
+            a1: box_max.y,
+            b0: box_min.z,
+            b1: box_max.z,
             k: box_max.x,
             material,
+            plane: Plane::YZ,
         }));
 
         Self {
@@ -83,5 +89,13 @@ impl Hittable for Cube {
             min: self.box_min,
             max: self.box_max,
         })
+    }
+
+    fn pdf_value(&self, point: &Point, vector: &Vec3) -> f32 {
+        self.sides.pdf_value(point, vector)
+    }
+
+    fn random(&self, point: &Point) -> Vec3 {
+        self.sides.random(point)
     }
 }
