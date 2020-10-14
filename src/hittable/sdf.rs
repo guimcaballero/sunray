@@ -25,9 +25,13 @@ impl TracedSDF {
 impl Hittable for TracedSDF {
     fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
         let mut t = taemin;
+
+        // TODO fix this so we start from a t in the bounding box, and not from taemin
+
         for _ in 0..2000 {
             let point = ray.at(t);
             let distance = self.sdf.dist(point);
+            // dbg!(distance, point);
 
             if distance < 0.00001 {
                 let normal = self.normal(point);
@@ -175,6 +179,41 @@ impl SDF for SDFOctahedron {
         Some(AABB {
             min: self.center - Vec3::from(self.size),
             max: self.center + Vec3::from(self.size),
+        })
+    }
+}
+
+pub struct SDFMandelBulb {
+    pub center: Point,
+}
+
+impl SDF for SDFMandelBulb {
+    fn dist(&self, position: Vec3) -> f32 {
+        let mut w = position - self.center;
+        let mut m = w.length_squared(); // 300
+
+        let mut dz = 1.0;
+
+        for _ in 0..15 {
+            dz = 8. * m.sqrt().powf(7.0) * dz + 1.0;
+            let r = w.length();
+            let b = 8. * (w.y / r).acos();
+            let a = 8. * w.x.atan2(w.z);
+            w = position
+                + r.powf(8.) * Vec3::new((b).sin() * (a).sin(), (b).cos(), (b).sin() * (a).cos());
+
+            m = w.length_squared();
+            if m > 256.0 {
+                break;
+            }
+        }
+        return 0.25 * m.ln() * m.sqrt() / dz;
+    }
+
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
+        Some(AABB {
+            min: self.center - Vec3::from(1.),
+            max: self.center + Vec3::from(1.),
         })
     }
 }

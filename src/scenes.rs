@@ -14,7 +14,7 @@ use crate::{
 };
 use rand::Rng;
 
-const SCENE: Scene = Scene::MengerSponge;
+const SCENE: Scene = Scene::MandelBulb;
 
 #[allow(dead_code)]
 pub enum Scene {
@@ -30,6 +30,25 @@ pub enum Scene {
     SpaceDonut,
     Imagine,
     MengerSponge,
+    MandelBulb,
+}
+
+pub fn generate_world() -> World {
+    match SCENE {
+        Scene::Test => test(),
+        Scene::ManySpheres => many_spheres(),
+        Scene::TwoPerlinSpheres => two_perlin_spheres(),
+        Scene::Earth => earth(),
+        Scene::LightRectangle => light_rectangle(),
+        Scene::CornellBox => cornell_box(),
+        Scene::CornellSmokes => cornell_smokes(),
+        Scene::FinalScene => final_scene(),
+        Scene::CustomScene => custom_scene(),
+        Scene::SpaceDonut => space_dount(),
+        Scene::MengerSponge => menger_sponge(),
+        Scene::Imagine => imagine(),
+        Scene::MandelBulb => mandelbulb(),
+    }
 }
 
 pub struct World {
@@ -76,23 +95,6 @@ impl Default for World {
             image_width: 800,
             max_depth: 50,
         }
-    }
-}
-
-pub fn generate_world() -> World {
-    match SCENE {
-        Scene::Test => test(),
-        Scene::ManySpheres => many_spheres(),
-        Scene::TwoPerlinSpheres => two_perlin_spheres(),
-        Scene::Earth => earth(),
-        Scene::LightRectangle => light_rectangle(),
-        Scene::CornellBox => cornell_box(),
-        Scene::CornellSmokes => cornell_smokes(),
-        Scene::FinalScene => final_scene(),
-        Scene::CustomScene => custom_scene(),
-        Scene::SpaceDonut => space_dount(),
-        Scene::MengerSponge => menger_sponge(),
-        Scene::Imagine => imagine(),
     }
 }
 
@@ -1025,6 +1027,43 @@ fn menger_sponge() -> World {
         hittables,
         camera,
         samples_per_pixel: 100,
+        background_color_top: Color::ones(),
+        background_color_bottom: Color::ones(),
+        ..World::default()
+    }
+}
+
+fn mandelbulb() -> World {
+    let mut hittables = HittableList::new();
+
+    hittables.add(box TracedSDF {
+        sdf: box SDFMandelBulb {
+            center: Vec3::zeros(),
+        },
+        material: Material::Lambertian(Color::new(0.8, 0.1, 0.1)),
+    });
+
+    // Camera
+    let lookfrom = Point::new(13.0, 9.0, 13.0) * 0.2;
+    let lookat = Point::new(0.0, 0.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        40.,
+        3. / 2.,
+        0.,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
+
+    World {
+        hittables,
+        camera,
+        samples_per_pixel: 10,
         background_color_top: Color::ones(),
         background_color_bottom: Color::ones(),
         ..World::default()
