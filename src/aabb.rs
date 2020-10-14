@@ -7,22 +7,28 @@ pub struct AABB {
 }
 
 impl AABB {
-    pub fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> bool {
+    // Returns the minimum t of the ray that is inside the AABB
+    pub fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<f32> {
+        // TODO What happens if the ray starts inside the bounding box?
+        let mut min = tmin;
         for a in 0..3 {
             let t0 = ((self.min[a] - ray.origin[a]) / ray.direction[a])
                 .min((self.max[a] - ray.origin[a]) / ray.direction[a]);
             let t1 = ((self.min[a] - ray.origin[a]) / ray.direction[a])
                 .max((self.max[a] - ray.origin[a]) / ray.direction[a]);
 
-            let tmin = t0.max(tmin);
+            min = t0.max(min);
             let tmax = t1.min(tmax);
 
-            if tmax <= tmin {
-                return false;
+            if tmax <= min {
+                return None;
             }
         }
 
-        true
+        // Check that we actually got a better t
+        assert!(min >= tmin);
+
+        Some(min)
     }
 
     pub fn surrounding_box(&self, other: AABB) -> AABB {

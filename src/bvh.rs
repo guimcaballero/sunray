@@ -10,7 +10,7 @@ pub struct BVHNode {
 
 impl Hittable for BVHNode {
     fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
-        if !self.bbox.hit(ray, taemin, t_max) {
+        if self.bbox.hit(ray, taemin, t_max).is_none() {
             return false;
         }
 

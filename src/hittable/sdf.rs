@@ -24,9 +24,16 @@ impl TracedSDF {
 
 impl Hittable for TracedSDF {
     fn hit(&self, ray: &Ray, taemin: f32, t_max: f32, hit_record: &mut HitRecord) -> bool {
-        let mut t = taemin;
+        // Start from a t in the bounding box, and not from taemin
+        let bounding_box_tmin = self
+            .bounding_box(0., 0.)
+            .and_then(|aabb| aabb.hit(ray, taemin, t_max));
 
-        // TODO fix this so we start from a t in the bounding box, and not from taemin
+        let mut t = if let Some(tmin) = bounding_box_tmin {
+            tmin
+        } else {
+            taemin
+        };
 
         for _ in 0..2000 {
             let point = ray.at(t);

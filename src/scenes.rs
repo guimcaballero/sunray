@@ -1044,7 +1044,7 @@ fn mandelbulb() -> World {
     });
 
     // Camera
-    let lookfrom = Point::new(13.0, 9.0, 13.0) * 0.2;
+    let lookfrom = Point::new(13.0, 9.0, 13.0) * 0.1;
     let lookat = Point::new(0.0, 0.0, 0.0);
     let dist_to_focus = (lookfrom - lookat).length();
 
