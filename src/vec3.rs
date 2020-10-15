@@ -71,6 +71,15 @@ impl Vec3 {
         }
     }
 
+    #[inline(always)]
+    pub fn clamp(&self, min: f32, max: f32) -> Self {
+        Self {
+            x: self.x.clamp(min, max),
+            y: self.y.clamp(min, max),
+            z: self.z.clamp(min, max),
+        }
+    }
+
     pub fn modulo(&self, other: Vec3) -> Self {
         fn modulo(a: f32, b: f32) -> f32 {
             a - (b * (a / b).floor())

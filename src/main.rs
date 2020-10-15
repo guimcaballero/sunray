@@ -46,7 +46,7 @@ fn main() {
 
     match file.write_all(result.as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
-        Ok(_) => println!("successfully wrote to {}", display),
+        Ok(_) => {}
     }
 
     // Yeah it's a bit dumb to open the image again
@@ -110,6 +110,11 @@ fn get_image_string() -> String {
         .map(|array: Vec<String>| array.join(""))
         .collect::<Vec<String>>()
         .join("");
+
+    println!(
+        "Rendered {}x{} with {} samples",
+        image_width, image_height, samples_per_pixel
+    );
 
     format!("P3\n{} {}\n255\n{}", image_width, image_height, string)
 }

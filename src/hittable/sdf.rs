@@ -1,4 +1,5 @@
 use crate::{hittable::*, material::*};
+use std::f32::consts::*;
 
 pub struct TracedSDF {
     pub sdf: Box<dyn SDF>,
@@ -219,8 +220,92 @@ impl SDF for SDFMandelBulb {
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
-            min: self.center - Vec3::from(1.),
-            max: self.center + Vec3::from(1.),
+            min: self.center - Vec3::from(2.),
+            max: self.center + Vec3::from(2.),
+        })
+    }
+}
+
+pub struct SDFMandelBox {
+    pub center: Point,
+    pub scale: f32,
+}
+impl SDF for SDFMandelBox {
+    fn dist(&self, mut z: Vec3) -> f32 {
+        let offset = z - self.center;
+        let mut dr = 1.0;
+        for _ in 0..20 {
+            z = box_fold(z, 1.); // Reflect
+            let (z2, dr2) = sphere_fold(z, dr, 0.1, 1.5); // Sphere Inversion
+            z = z2;
+            dr = dr2;
+
+            z = self.scale * z + offset; // Scale & Translate
+            dr = dr * self.scale.abs() + 1.0;
+        }
+        let r = z.length();
+        r / dr.abs()
+    }
+
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
+        Some(AABB {
+            min: self.center - Vec3::from(10.),
+            max: self.center + Vec3::from(10.),
+        })
+    }
+}
+
+fn sphere_fold(mut z: Vec3, mut dz: f32, min_rad: f32, fixed_rad: f32) -> (Vec3, f32) {
+    let r2 = z.length_squared();
+    if r2 < min_rad {
+        // linear inner scaling
+        let temp = fixed_rad / min_rad;
+        z = z * temp;
+        dz *= temp;
+    } else if r2 < fixed_rad {
+        // this is the actual sphere inversion
+        let temp = fixed_rad / r2;
+        z = z * temp;
+        dz *= temp;
+    }
+
+    (z, dz)
+}
+
+fn box_fold(z: Vec3, folding_limit: f32) -> Vec3 {
+    z.clamp(-folding_limit, folding_limit) * 2.0 - z
+}
+
+pub struct SDFKnot {
+    pub center: Point,
+    pub k: f32,
+}
+impl SDF for SDFKnot {
+    fn dist(&self, position: Vec3) -> f32 {
+        let mut p = position - self.center;
+
+        let r = Vec3::new(p.x, p.y, 0.).length();
+        let mut a = p.y.atan2(p.x);
+        let oa = self.k * a;
+
+        a = a.rem_euclid(0.001 * TAU) - 0.001 * TAU / 2.;
+
+        p.x = r * a.cos();
+        p.y = r * a.sin();
+        p.x -= 6.0;
+
+        let old_px = p.x;
+        p.x = oa.cos() * p.x - oa.sin() * p.z;
+        p.z = oa.cos() * p.z + oa.sin() * old_px;
+
+        p.x = p.x.abs() - 1.35;
+        p.length() - 1.
+    }
+
+    fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
+        Some(AABB {
+            min: self.center - Vec3::from(100.),
+            max: self.center + Vec3::from(100.),
         })
     }
 }

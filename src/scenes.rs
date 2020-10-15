@@ -14,7 +14,7 @@ use crate::{
 };
 use rand::Rng;
 
-const SCENE: Scene = Scene::MandelBulb;
+const SCENE: Scene = Scene::Knot;
 
 #[allow(dead_code)]
 pub enum Scene {
@@ -31,6 +31,8 @@ pub enum Scene {
     Imagine,
     MengerSponge,
     MandelBulb,
+    MandelBox,
+    Knot,
 }
 
 pub fn generate_world() -> World {
@@ -48,6 +50,8 @@ pub fn generate_world() -> World {
         Scene::MengerSponge => menger_sponge(),
         Scene::Imagine => imagine(),
         Scene::MandelBulb => mandelbulb(),
+        Scene::MandelBox => mandelbox(),
+        Scene::Knot => knot(),
     }
 }
 
@@ -1043,9 +1047,98 @@ fn mandelbulb() -> World {
         material: Material::Lambertian(Color::new(0.8, 0.1, 0.1)),
     });
 
+    // Ceiling light
+    hittables.add(box FlipFace {
+        hittable: box Rect {
+            a0: -1.0,
+            a1: 1.0,
+            b0: -1.0,
+            b1: 1.0,
+            k: 5.0,
+            material: Material::DiffuseLight(Color::new(7.0, 7.0, 7.0)),
+            plane: Plane::XZ,
+        },
+    });
+
     // Camera
-    let lookfrom = Point::new(13.0, 9.0, 13.0) * 0.1;
+    let lookfrom = Point::new(13.0, 9.0, 13.0) * 0.25;
     let lookat = Point::new(0.0, 0.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        40.,
+        3. / 2.,
+        0.,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
+
+    World {
+        hittables,
+        camera,
+        samples_per_pixel: 100,
+        background_color_top: Color::new(0.02, 0.02, 0.05),
+        background_color_bottom: Color::new(0.1, 0.1, 0.2),
+        ..World::default()
+    }
+}
+
+fn mandelbox() -> World {
+    let mut hittables = HittableList::new();
+
+    hittables.add(box TracedSDF {
+        sdf: box SDFMandelBox {
+            center: Vec3::zeros(),
+            scale: 2.,
+        },
+        material: Material::Lambertian(Color::new(0.8, 0.1, 0.1)),
+    });
+
+    // Camera
+    let lookfrom = Point::new(13.0, 9.0, 13.0) * 1.8;
+    let lookat = Point::new(0.0, 0.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        40.,
+        3. / 2.,
+        0.,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
+
+    World {
+        hittables,
+        camera,
+        samples_per_pixel: 10,
+        background_color_top: Color::ones(),
+        background_color_bottom: Color::ones(),
+        ..World::default()
+    }
+}
+
+fn knot() -> World {
+    let mut hittables = HittableList::new();
+
+    hittables.add(box TracedSDF {
+        sdf: box SDFKnot {
+            center: Point::zeros(),
+            k: 3.5,
+        },
+        material: Material::Lambertian(Color::new(0.8, 0.1, 0.1)),
+    });
+
+    // Camera
+    let lookfrom = Point::new(0.0, 0.0, 50.0) * 1.;
+    let lookat = Point::zeros();
     let dist_to_focus = (lookfrom - lookat).length();
 
     let camera = Camera::new(
