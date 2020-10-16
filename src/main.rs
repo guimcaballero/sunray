@@ -1,26 +1,9 @@
-#![feature(clamp, box_syntax)]
-
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 use std::time::Instant;
 
-mod aabb;
-mod bvh;
-mod camera;
-mod hit_record;
-mod hittable;
-mod hittable_list;
-mod material;
-mod onb;
-mod pdf;
-mod perlin;
-mod ray;
-mod scenes;
-mod texture;
-mod vec3;
-
-mod renderer;
+use sunray::{get_image_ppm, Scene};
 
 fn main() {
     let start = Instant::now();
@@ -28,7 +11,7 @@ fn main() {
     let path = Path::new("image.ppm");
     let display = path.display();
 
-    let result = renderer::get_image_ppm();
+    let result = get_image_ppm(Scene::Knot);
 
     // Open a file in write-only mode, returns `io::Result<File>`
     let mut file = match File::create(&path) {

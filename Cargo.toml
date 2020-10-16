@@ -4,7 +4,13 @@ version = "0.1.0"
 authors = ["guimcaballero <guim.caballero@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "sunray"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sunny"
+path = "src/main.rs"
 
 [dependencies]
 rand = "0.7"

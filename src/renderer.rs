@@ -12,7 +12,7 @@ use crate::{
     vec3::*,
 };
 
-pub fn get_image_ppm() -> String {
+pub fn get_image_ppm(scene: Scene) -> String {
     // World
     let World {
         hittables,
@@ -24,7 +24,7 @@ pub fn get_image_ppm() -> String {
         image_width,
         aspect_ratio,
         max_depth,
-    } = scenes::generate_world();
+    } = scenes::generate_world(scene);
 
     let image_height = (image_width as f32 / aspect_ratio) as u16;
 

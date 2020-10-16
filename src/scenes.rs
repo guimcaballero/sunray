@@ -14,8 +14,6 @@ use crate::{
 };
 use rand::Rng;
 
-const SCENE: Scene = Scene::Knot;
-
 #[allow(dead_code)]
 pub enum Scene {
     Test,
@@ -35,8 +33,8 @@ pub enum Scene {
     Knot,
 }
 
-pub fn generate_world() -> World {
-    match SCENE {
+pub fn generate_world(scene: Scene) -> World {
+    match scene {
         Scene::Test => test(),
         Scene::ManySpheres => many_spheres(),
         Scene::TwoPerlinSpheres => two_perlin_spheres(),
