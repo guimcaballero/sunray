@@ -4,15 +4,22 @@ version = "0.1.0"
 authors = ["guimcaballero <guim.caballero@gmail.com>"]
 edition = "2018"
 
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-Oz", "--enable-mutable-globals"]
+
 [lib]
 name = "sunray"
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
 
 [[bin]]
 name = "sunny"
 path = "src/main.rs"
 
 [dependencies]
-rand = "0.7"
+rand = { version = "0.7", features = ["wasm-bindgen"] }
 rayon = "1.4.0"
 image = "0.23.10"
+wasm-bindgen = "0.2.63"
+console_error_panic_hook = { version = "0.1.6", optional = true }
+wee_alloc = { version = "0.4.5", optional = true }

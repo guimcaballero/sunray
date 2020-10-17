@@ -75,6 +75,81 @@ pub fn get_image_ppm(scene: Scene) -> String {
     format!("P3\n{} {}\n255\n{}", image_width, image_height, string)
 }
 
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+#[wasm_bindgen]
+#[cfg(target_arch = "wasm32")]
+pub fn get_image_ppm_single_threaded(
+    scene: Scene,
+    samples_per_pixel: u16,
+    image_width: usize,
+    aspect_ratio: f32,
+    color_top: &[f32],
+    color_bottom: &[f32],
+) -> String {
+    log("getting started");
+
+    // World
+    let World {
+        hittables,
+        camera,
+        lights,
+        background_color_top: _,
+        background_color_bottom: _,
+        samples_per_pixel: _,
+        image_width: _,
+        aspect_ratio: _,
+        max_depth,
+    } = scenes::generate_world(scene);
+
+    let background_color_top = Color::from_array(color_top);
+    let background_color_bottom = Color::from_array(color_bottom);
+
+    let image_height = (image_width as f32 / aspect_ratio) as u16;
+
+    let string = (0..image_height)
+        .into_iter()
+        .rev()
+        .map(|j| {
+            log(&*format!("Remaining scanlines: {}", j));
+            (0..image_width)
+                .into_iter()
+                .map(|i| {
+                    let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+
+                    let mut rng = rand::thread_rng();
+                    for _s in 0..samples_per_pixel {
+                        let u = (i as f32 + rng.gen::<f32>()) / (image_width - 1) as f32;
+                        let v = (j as f32 + rng.gen::<f32>()) / (image_height - 1) as f32;
+
+                        let ray = camera.ray(u, v);
+                        pixel_color += ray_color(
+                            &ray,
+                            background_color_top,
+                            background_color_bottom,
+                            &hittables,
+                            &lights,
+                            max_depth,
+                        );
+                    }
+
+                    pixel_color.write_color(samples_per_pixel)
+                })
+                .collect()
+        })
+        .map(|array: Vec<String>| array.join(""))
+        .collect::<Vec<String>>()
+        .join("");
+
+    format!("P3\n{} {}\n255\n{}", image_width, image_height, string)
+}
+
 fn ray_color(
     ray: &Ray,
     background_color_top: Color,

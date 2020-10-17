@@ -14,7 +14,34 @@ use crate::{
 };
 use rand::Rng;
 
-#[allow(dead_code)]
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub enum Scene {
+    CornellBox,
+    CornellSmokes,
+    SpaceDonut,
+    Imagine,
+    MengerSponge,
+    MandelBulb,
+    MandelBox,
+    Knot,
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn generate_world(scene: Scene) -> World {
+    match scene {
+        Scene::CornellBox => cornell_box(),
+        Scene::CornellSmokes => cornell_smokes(),
+        Scene::SpaceDonut => space_dount(),
+        Scene::MengerSponge => menger_sponge(),
+        Scene::Imagine => imagine(),
+        Scene::MandelBulb => mandelbulb(),
+        Scene::MandelBox => mandelbox(),
+        Scene::Knot => knot(),
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 pub enum Scene {
     Test,
     ManySpheres,
@@ -33,6 +60,7 @@ pub enum Scene {
     Knot,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn generate_world(scene: Scene) -> World {
     match scene {
         Scene::Test => test(),

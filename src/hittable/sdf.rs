@@ -166,8 +166,8 @@ impl SDF for SDFCube {
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         Some(AABB {
-            min: self.center - self.dimensions / 2.,
-            max: self.center + self.dimensions / 2.,
+            min: self.center - self.dimensions,
+            max: self.center + self.dimensions,
         })
     }
 }

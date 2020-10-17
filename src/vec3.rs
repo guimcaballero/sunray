@@ -103,6 +103,14 @@ impl Vec3 {
     }
 
     #[inline(always)]
+    pub fn from_array(val: &[f32]) -> Self {
+        if val.len() != 3 {
+            panic!("Array is not length 3");
+        }
+        Self::new(val[0], val[1], val[2])
+    }
+
+    #[inline(always)]
     pub fn from(val: f32) -> Self {
         Self::new(val, val, val)
     }
