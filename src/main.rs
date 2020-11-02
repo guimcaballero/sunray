@@ -11,7 +11,7 @@ fn main() {
     let path = Path::new("image.ppm");
     let display = path.display();
 
-    let result = get_image_ppm(Scene::Knot);
+    let result = get_image_ppm(Scene::CornellMandelBox);
 
     // Open a file in write-only mode, returns `io::Result<File>`
     let mut file = match File::create(&path) {

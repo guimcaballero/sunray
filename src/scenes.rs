@@ -25,6 +25,7 @@ pub enum Scene {
     MandelBulb,
     MandelBox,
     Knot,
+    CornellMandelBox,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -38,6 +39,7 @@ pub fn generate_world(scene: Scene) -> World {
         Scene::MandelBulb => mandelbulb(),
         Scene::MandelBox => mandelbox(),
         Scene::Knot => knot(),
+        Scene::CornellMandelBox => cornell_mandelbox(),
     }
 }
 
@@ -58,6 +60,7 @@ pub enum Scene {
     MandelBulb,
     MandelBox,
     Knot,
+    CornellMandelBox,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -78,6 +81,7 @@ pub fn generate_world(scene: Scene) -> World {
         Scene::MandelBulb => mandelbulb(),
         Scene::MandelBox => mandelbox(),
         Scene::Knot => knot(),
+        Scene::CornellMandelBox => cornell_mandelbox(),
     }
 }
 
@@ -1185,6 +1189,110 @@ fn knot() -> World {
         samples_per_pixel: 10,
         background_color_top: Color::ones(),
         background_color_bottom: Color::ones(),
+        ..World::default()
+    }
+}
+
+fn cornell_mandelbox() -> World {
+    let mut cornell = HittableList::new();
+
+    // Walls
+    let size = 17.0;
+    cornell.add(Box::new(Rect {
+        a0: -size,
+        a1: size,
+        b0: -size,
+        b1: size,
+        k: size,
+        material: Material::Lambertian(Color::new(0.12, 0.45, 0.15)),
+        plane: Plane::YZ,
+    }));
+    cornell.add(Box::new(Rect {
+        a0: -size,
+        a1: size,
+        b0: -size,
+        b1: size,
+        k: -size,
+        material: Material::Lambertian(Color::new(0.65, 0.05, 0.05)),
+        plane: Plane::YZ,
+    }));
+    cornell.add(Box::new(Rect {
+        a0: -size,
+        a1: size,
+        b0: -size,
+        b1: size,
+        k: -size,
+        material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XZ,
+    }));
+    cornell.add(Box::new(Rect {
+        a0: -size,
+        a1: size,
+        b0: -size,
+        b1: size,
+        k: size,
+        material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XZ,
+    }));
+    cornell.add(Box::new(Rect {
+        a0: -size,
+        a1: size,
+        b0: -size,
+        b1: size,
+        k: size,
+        material: Material::Lambertian(Color::from(0.73)),
+        plane: Plane::XY,
+    }));
+
+    // Light
+    cornell.add(Box::new(FlipFace {
+        hittable: Box::new(Rect {
+            a0: -3.0,
+            a1: 3.0,
+            b0: -3.0,
+            b1: 3.0,
+            k: size,
+            material: Material::DiffuseLight(Color::new(15.0, 15.0, 15.0)),
+            plane: Plane::XZ,
+        }),
+    }));
+
+    let mut hittables = HittableList::new();
+    hittables.add(box Translate::new(box cornell, Vec3::new(0., 11., 0.)));
+    hittables.add(box RotateY::new(
+        box TracedSDF {
+            sdf: box SDFMandelBox {
+                center: Point::zeros(),
+                scale: 2.,
+            },
+            material: Material::Metal(Color::new(0.8, 0.8, 0.8), 0.),
+        },
+        15.0,
+    ));
+
+    let lookfrom = Point::new(0.0, 15.0, -61.0);
+    let lookat = Point::new(0., 10., 0.);
+    let dist_to_focus = (lookfrom - lookat).length();
+
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        40.,
+        1.,
+        0.,
+        dist_to_focus,
+        0.0,
+        1.0,
+    );
+
+    World {
+        hittables,
+        camera,
+        aspect_ratio: 1.,
+        samples_per_pixel: 10,
+        background_color_top: Color::new(225. / 255., 41. / 255., 131. / 255.),
+        background_color_bottom: Color::new(0., 78. / 255., 182. / 255.),
         ..World::default()
     }
 }

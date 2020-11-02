@@ -45,6 +45,10 @@ impl AABB {
 
         AABB { min, max }
     }
+
+    pub fn center(&self) -> Point {
+        (self.min + self.max) / 2.
+    }
 }
 
 impl Default for AABB {

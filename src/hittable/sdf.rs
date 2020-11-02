@@ -39,7 +39,6 @@ impl Hittable for TracedSDF {
         for _ in 0..2000 {
             let point = ray.at(t);
             let distance = self.sdf.dist(point);
-            // dbg!(distance, point);
 
             if distance < 0.00001 {
                 let normal = self.normal(point);
@@ -54,7 +53,7 @@ impl Hittable for TracedSDF {
 
                 return true;
             }
-            if distance > 1000.0 || t > t_max {
+            if distance > 10000.0 || t > t_max {
                 break;
             }
 
@@ -380,6 +379,58 @@ impl SDF for SDFRepetition {
 
     fn bounding_box(&self, _t0: f32, _t1: f32) -> Option<AABB> {
         None
+    }
+}
+
+pub struct SDFScale {
+    pub a: Box<dyn SDF>,
+    pub scale: f32,
+}
+
+impl SDF for SDFScale {
+    fn dist(&self, position: Vec3) -> f32 {
+        self.a.dist(position / self.scale) * self.scale
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        if let Some(aabb) = self.a.bounding_box(t0, t1) {
+            let center = aabb.center();
+            let min = self.scale * (aabb.min - center);
+            let max = self.scale * (aabb.max - center);
+            Some(AABB {
+                min: min + center,
+                max: max + center,
+            })
+        } else {
+            None
+        }
+    }
+}
+
+pub struct SDFDebugBounding {
+    pub a: Box<dyn SDF>,
+    pub debug: bool,
+}
+
+impl SDF for SDFDebugBounding {
+    fn dist(&self, position: Vec3) -> f32 {
+        if !self.debug {
+            return self.a.dist(position);
+        }
+
+        if let Some(aabb) = self.a.bounding_box(0., 0.) {
+            let center = aabb.center();
+            let max = aabb.max - center;
+
+            let q = (position - center).abs() - max;
+            q.max(0.0).length() + q.x.max(q.y.max(q.z)).min(0.0)
+        } else {
+            f32::MAX
+        }
+    }
+
+    fn bounding_box(&self, t0: f32, t1: f32) -> Option<AABB> {
+        self.a.bounding_box(t0, t1)
     }
 }
 

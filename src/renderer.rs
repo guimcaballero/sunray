@@ -202,6 +202,11 @@ fn ray_color(
                 };
                 let pdf_val = p.value(scattered.direction);
 
+                // Early return to skip a ray bounce
+                if attenuation.x == 0. && attenuation.y == 0. && attenuation.z == 0. {
+                    return emitted;
+                }
+
                 emitted
                     + attenuation
                         * hit_record
@@ -221,6 +226,11 @@ fn ray_color(
                 specular_ray,
                 attenuation,
             } => {
+                // Early return to skip a ray bounce
+                if attenuation.x == 0. && attenuation.y == 0. && attenuation.z == 0. {
+                    return emitted;
+                }
+
                 attenuation
                     * ray_color(
                         &specular_ray,
